@@ -1,0 +1,52 @@
+/* ──────────────────────────────────────────────────────────────────────────
+   Theme overrides. Dark "Obsidian" is defined in app/globals.css @theme.
+   These selectors redefine the same custom properties; html[data-theme="…"]
+   (specificity 0,1,1) reliably overrides the @theme :root defaults.
+   next-themes is configured with attribute="data-theme".
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* Elysium — light theme (toggle) */
+html[data-theme="light"] {
+  color-scheme: light;
+  --color-abyss: #f5f1e8; /* background */
+  --color-basalt: #ffffff; /* surfaces */
+  --color-ash: #e2dbcc; /* borders */
+  --color-bone: #1c1820; /* primary text */
+  --color-smoke: #5a5466; /* secondary text (AA on #F5F1E8) */
+  --color-molten: #a8741f; /* darkened gold (AA contrast) */
+  --color-molten-deep: #875e18;
+  --color-ember: #c23e22;
+  --color-styx: #2e5e6c;
+  --gradient-molten: linear-gradient(
+    135deg,
+    #c89a3a 0%,
+    #a8741f 45%,
+    #8a4f22 100%
+  );
+  --glow-molten:
+    0 0 0 1px color-mix(in oklab, var(--color-molten) 30%, transparent),
+    0 8px 40px -12px color-mix(in oklab, var(--color-molten) 22%, transparent);
+}
+
+/* Underworld — secret theme (Fase 7 easter egg): ember becomes protagonist */
+html[data-theme="underworld"] {
+  color-scheme: dark;
+  --color-abyss: #0b0709;
+  --color-basalt: #150f11;
+  --color-ash: #3a1f22;
+  --color-bone: #f0e6e2;
+  --color-smoke: #b89a92;
+  --color-molten: #e04e2f; /* ember promoted to primary */
+  --color-molten-deep: #b83a20;
+  --color-ember: #ff6a3d;
+  --color-styx: #8c5a3e;
+  --gradient-molten: linear-gradient(
+    135deg,
+    #ff6a3d 0%,
+    #e04e2f 45%,
+    #b02810 100%
+  );
+  --glow-molten:
+    0 0 0 1px color-mix(in oklab, var(--color-molten) 35%, transparent),
+    0 8px 48px -12px color-mix(in oklab, var(--color-ember) 30%, transparent);
+}
