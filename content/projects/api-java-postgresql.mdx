@@ -1,0 +1,62 @@
+---
+title: API Java + PostgreSQL
+slug: api-java-postgresql
+summary: Persistência relacional com JPA, camadas em MVC e CRUD testável sobre PostgreSQL.
+problem: Modelar dados e expor um CRUD de forma limpa, separando responsabilidades e mantendo o banco sob controle.
+date: 2024-03-01
+stack: [Java, Spring, JPA/Hibernate, PostgreSQL, JUnit, MVC]
+repo: https://github.com/iHadesj/JPA_PostgreSQL
+status: shipped
+featured: true
+order: 2
+highlights:
+  - Mapeamento JPA com entidades e relações explícitas
+  - Camadas separadas no padrão MVC (controller → service → repository)
+  - Consultas de exemplo versionadas em exemplos.sql
+metrics:
+  - label: Linguagem
+    value: Java
+  - label: Persistência
+    value: JPA / PostgreSQL
+  - label: Testes
+    value: JUnit
+---
+
+## O problema
+
+Dois exercícios complementares — um focado em mapeamento JPA com PostgreSQL,
+outro num CRUD organizado em MVC — tratam da mesma questão de fundo: como
+modelar dados e expor operações de forma que o domínio fique legível, as
+camadas não vazem responsabilidade umas nas outras, e o comportamento seja
+testável sem subir a aplicação inteira.
+
+## Decisões técnicas
+
+- **JPA/Hibernate em vez de JDBC cru.** O ganho é mapear o domínio em objetos e
+  relações declarativas em vez de espalhar SQL por toda a base. O trade-off
+  consciente: abrir mão de controle fino sobre cada query — por isso as
+  consultas que importam ficam explícitas em `exemplos.sql`, à vista.
+- **PostgreSQL.** Banco relacional sério, gratuito, com tipos e constraints que
+  empurram a integridade para o banco, não só para o código.
+- **MVC (controller → service → repository).** Cada camada com um trabalho:
+  controller traduz HTTP, service guarda a regra de negócio, repository fala com
+  o banco. Facilita testar a regra isolada do transporte e da persistência.
+
+## Arquitetura
+
+Requisição entra pelo controller, que delega ao service (onde mora a regra) e
+recorre ao repository para ler/gravar via JPA. As entidades carregam o mapeamento
+objeto-relacional; o `exemplos.sql` documenta o schema e as consultas de
+referência.
+
+## Resultados
+
+- Domínio modelado com entidades e relações explícitas.
+- Regras isoladas em serviços, exercitadas por testes JUnit.
+- **Métrica a coletar:** cobertura de testes e número de entidades/endpoints.
+
+## O que eu faria diferente
+
+Adicionaria migrations versionadas (Flyway/Liquibase) em vez de SQL solto,
+DTOs para não vazar entidades JPA na borda HTTP, e testes de integração com um
+PostgreSQL efêmero (Testcontainers) cobrindo o caminho completo.

@@ -1,0 +1,66 @@
+---
+title: Portfolio Hades
+slug: portfolio-hades
+summary: Este site — Next.js 16, 3D interativo e performance medida, construído a partir de uma spec executável.
+problem: Provar senioridade de frontend num único artefato — rápido como texto, memorável como um jogo.
+date: 2026-06-01
+stack: [Next.js, React, TypeScript, Tailwind v4, three.js]
+repo: https://github.com/iHadesj/portfolio-hades
+demo: https://eduferreira.dev
+status: in-progress
+featured: true
+order: 4
+highlights:
+  - Chunk 3D isolado em 229 KB gz (orçamento < 300 KB)
+  - three.js fora do payload inicial (lazy + gates de capacidade)
+  - Construído fase a fase a partir de uma spec executável
+metrics:
+  - label: Chunk 3D
+    value: 229 KB gz
+  - label: Framework
+    value: Next.js 16
+  - label: Lighthouse
+    value: a medir
+---
+
+## O problema
+
+Um portfolio que diz "sou bom de frontend" precisa _provar_ isso ao carregar.
+A meta foi explícita desde o início: carregar como texto puro e surpreender como
+um jogo. Os dois objetivos brigam — 3D vende, mas pesa. O trabalho é fazer o
+peso desaparecer.
+
+## Decisões técnicas
+
+- **O 3D nunca é o LCP.** O hero renderiza no servidor texto + um pôster SVG de
+  obsidiana; a cena WebGL carrega depois (pós-idle, `next/dynamic` com
+  `ssr:false`) e faz crossfade por cima. Em mobile, reduced-motion ou GPU fraca,
+  o pôster fica — e nenhum byte de three.js é baixado.
+- **Orçamento de bundle como gate, não meta.** O chunk 3D ficou em 229 KB gz
+  (limite de 300). Para chegar lá, troquei o bloom de pós-processamento por um
+  glow em CSS — o ganho visual não pagava os ~85 KB.
+- **Tokens de design, sem exceção.** Toda cor vem do `@theme` do Tailwind v4;
+  trocar tema (escuro → claro → "underworld") é só sobrescrever custom
+  properties.
+- **Acessibilidade e `prefers-reduced-motion` como cidadãos de primeira
+  classe**, não um checklist no fim.
+
+## Arquitetura
+
+App Router (Next 16, Turbopack), React 19, Server Components por padrão —
+`"use client"` só onde há interação, 3D ou motion. Conteúdo dos case studies em
+MDX tipado por zod (velite): frontmatter inválido quebra o build. Os dados do
+GitHub vêm de route handlers que escondem o token e cacheiam a resposta.
+
+## Resultados
+
+- 3D isolado e preguiçoso: 229 KB gz, zero no caminho crítico.
+- Build verde a cada fase: `lint`, `typecheck` e `build` como portão.
+- **A medir (Fase 11):** relatório Lighthouse de produção e CI verde — os
+  números reais entram aqui quando o deploy estiver no ar.
+
+## O que eu faria diferente
+
+Mediria o orçamento de performance desde o primeiro commit (com o analyzer no
+CI), em vez de verificar ao fim de cada fase. E escreveria os testes de
+acessibilidade junto das features, não numa fase dedicada.

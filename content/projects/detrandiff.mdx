@@ -1,0 +1,61 @@
+---
+title: DetranDiff
+slug: detrandiff
+summary: Comparativo mensal automatizado de tabelas de tarifa do Detran.
+problem: Conferir, mês a mês e na mão, planilhas de tarifa era lento e propenso a erro.
+date: 2024-06-01
+stack: [HTML, JavaScript, Vercel]
+repo: https://github.com/iHadesj/DetranDiff
+demo: https://detran-diff.vercel.app
+status: shipped
+featured: true
+order: 1
+highlights:
+  - Diff automático entre competências, com o que mudou em destaque
+  - Menos conferência manual e menos erro de digitação
+  - "Métrica a coletar: tempo economizado por ciclo"
+metrics:
+  - label: Stack
+    value: Front puro
+  - label: Deploy
+    value: Vercel
+  - label: Tempo/ciclo
+    value: a coletar
+---
+
+## O problema
+
+A cada competência, era preciso comparar a nova tabela de tarifa com a do mês
+anterior para descobrir o que mudou. Feito na mão, em planilha, o processo era
+lento e dependia de atenção — exatamente o tipo de tarefa em que o olho humano
+falha: uma linha trocada, um valor que mexeu 0,01 e ninguém percebe.
+
+## Decisões técnicas
+
+- **Front puro (HTML + JS), sem framework.** É uma ferramenta de uso único:
+  carregar dois conjuntos e destacar a diferença. Trazer React/build/deploy
+  pipeline seria peso sem retorno. Trade-off: zero reuso de componentes, em
+  troca de algo que abre instantâneo e qualquer um mantém.
+- **Deploy na Vercel.** Publicar um `index.html` estático custa zero e fica
+  sempre no ar — sem servidor para manter.
+- **Comparação no cliente.** Os dados não saem do navegador; nada de upload de
+  planilha para um backend. Mais simples e mais privado.
+
+## Arquitetura
+
+Um único artefato estático servido pela Vercel: a página carrega as duas
+competências, normaliza os registros e renderiza o diff destacando entradas
+novas, removidas e alteradas. Sem banco, sem API, sem estado de servidor.
+
+## Resultados
+
+- Diff automático entre competências, com o que mudou em destaque.
+- Menos conferência manual e menos erro de digitação na revisão.
+- **Métrica a coletar:** tempo economizado por ciclo de conferência.
+
+## O que eu faria diferente
+
+Extrairia a lógica de diff para um módulo testável (hoje vive junto da UI) e
+adicionaria testes para os casos de borda — linhas reordenadas, formatação de
+número e acentuação. Um próximo passo natural seria aceitar CSV/Excel direto,
+em vez de colar os dados.
