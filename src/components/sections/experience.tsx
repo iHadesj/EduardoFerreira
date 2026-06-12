@@ -10,31 +10,47 @@ interface TimelineItem {
   stack: string[];
 }
 
-// TODO_EDU: substituir por experiências/formação reais.
 const TIMELINE: TimelineItem[] = [
+  {
+    // TODO_EDU: confirmar mês/ano de início do estágio na VTT.
+    period: "2025 — agora",
+    role: "Estagiário de Desenvolvimento Web",
+    org: "VTT",
+    bullets: [
+      "Desenvolvimento web em projetos reais da empresa — o stack fullstack saindo da teoria para o dia a dia",
+      "TODO_EDU: principal entrega ou responsabilidade (com impacto/número)",
+    ],
+    stack: ["React", "TypeScript", "Java"],
+  },
+  {
+    period: "fev 2025 — agora",
+    role: "Bacharelado em Análise e Desenvolvimento de Sistemas",
+    org: "Estácio",
+    bullets: [
+      "Graduação cursada em paralelo ao estágio — teoria aplicada direto na prática",
+      "Base formal em engenharia de software, banco de dados e arquitetura",
+    ],
+    stack: ["Estruturas de dados", "POO", "SQL"],
+  },
   {
     period: "2024 — agora",
     role: "Desenvolvedor Fullstack",
-    org: "TODO_EDU: empresa / freelance",
+    org: "projetos próprios",
     bullets: [
-      "TODO_EDU: principal entrega ou responsabilidade (com impacto/número)",
-      "TODO_EDU: segunda entrega relevante",
+      "Do back-end Java para o front: React, TypeScript e Next.js em projetos como StudyQuest e este portfolio",
+      "Banco relacional na prática: PostgreSQL e MySQL",
     ],
-    stack: ["Java", "Spring", "React", "TypeScript"],
+    stack: ["React", "TypeScript", "Next.js", "PostgreSQL"],
   },
   {
-    period: "TODO_EDU",
-    role: "TODO_EDU: cargo anterior / projeto",
-    org: "TODO_EDU",
-    bullets: ["TODO_EDU: impacto técnico", "TODO_EDU: aprendizado ou métrica"],
-    stack: ["Java", "PostgreSQL", "JUnit"],
-  },
-  {
-    period: "TODO_EDU",
-    role: "Formação",
-    org: "TODO_EDU: instituição / bootcamp",
-    bullets: ["TODO_EDU: foco do curso", "TODO_EDU: projeto de destaque"],
-    stack: ["Estruturas de dados", "POO", "SQL"],
+    period: "2023 — 2024",
+    role: "Especialização Back-End Java",
+    org: "EBAC",
+    bullets: [
+      "Java como fundação: POO, JPA/Hibernate e persistência com PostgreSQL",
+      "CRUDs em camadas MVC com testes JUnit — base do case API Java + PostgreSQL",
+    ],
+    stack: ["Java", "JPA/Hibernate", "PostgreSQL", "JUnit"],
   },
 ];
 

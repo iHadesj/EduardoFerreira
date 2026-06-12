@@ -5,10 +5,11 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { Float } from "@react-three/drei";
 import * as THREE from "three";
 
-const SHARD_COLOR = "#141019";
+const SHARD_COLOR = "#1c1526";
 const MOLTEN = "#e8a33d";
-const EMISSIVE_ON = new THREE.Color("#3a230a");
-const EMISSIVE_OFF = new THREE.Color("#000000");
+const EMISSIVE_HOVER = new THREE.Color("#4a2c0c");
+/* Faint always-on molten core so the stone never reads as a black hole. */
+const EMISSIVE_BASE = new THREE.Color("#180c03");
 
 interface ObsidianShardProps {
   /** Freeze pointer-parallax rotation (final perf-degradation step). */
@@ -21,6 +22,7 @@ export function ObsidianShard({ frozen = false }: ObsidianShardProps) {
   const edgeMatRef = useRef<THREE.LineBasicMaterial>(null);
   const hovered = useRef(false);
   const pulse = useRef(0);
+  const spin = useRef(0);
   const clickTimes = useRef<number[]>([]);
   const { pointer } = useThree();
 
@@ -54,20 +56,22 @@ export function ObsidianShard({ frozen = false }: ObsidianShardProps) {
     const k = Math.min(1, delta * 6); // ~250ms feel, frame-rate independent
 
     if (!frozen) {
+      // Slow idle spin so the flat-shaded facets sweep through the rim light.
+      spin.current += delta * 0.12;
       const targetX = pointer.y * 0.35;
-      const targetY = pointer.x * 0.35;
+      const targetY = spin.current + pointer.x * 0.35;
       group.rotation.x += (targetX - group.rotation.x) * 0.06;
       group.rotation.y += (targetY - group.rotation.y) * 0.06;
     }
 
     if (matRef.current) {
       matRef.current.emissive.lerp(
-        hovered.current ? EMISSIVE_ON : EMISSIVE_OFF,
+        hovered.current ? EMISSIVE_HOVER : EMISSIVE_BASE,
         k,
       );
     }
     if (edgeMatRef.current) {
-      const target = hovered.current ? 0.8 : 0.15;
+      const target = hovered.current ? 1 : 0.45;
       edgeMatRef.current.opacity += (target - edgeMatRef.current.opacity) * k;
     }
 
@@ -106,10 +110,10 @@ export function ObsidianShard({ frozen = false }: ObsidianShardProps) {
           <meshStandardMaterial
             ref={matRef}
             color={SHARD_COLOR}
-            emissive="#000000"
+            emissive="#180c03"
             flatShading
-            roughness={0.35}
-            metalness={0.55}
+            roughness={0.3}
+            metalness={0.35}
           />
         </mesh>
         <lineSegments geometry={edgeGeometry}>
@@ -117,7 +121,7 @@ export function ObsidianShard({ frozen = false }: ObsidianShardProps) {
             ref={edgeMatRef}
             color={MOLTEN}
             transparent
-            opacity={0.15}
+            opacity={0.45}
           />
         </lineSegments>
       </group>

@@ -15,13 +15,13 @@ export const siteConfig = {
   name: "Edu Ferreira",
   handle: "iHadesj",
   // Public-facing contact e-mail — TODO_EDU: confirmar endereço real (Fase 11).
-  email: "ola@eduferreira.dev",
+  email: "edualexandre2017@outlook.com",
   // Canonical production URL — placeholder domain until Fase 11.
-  url: "https://eduferreira.dev",
+  url: "https://edu-ferreira-zeta.vercel.app",
   // CV PDF lives in /public — file to be added in Fase 11 (TODO_EDU).
   cvUrl: "/cv-edu-ferreira.pdf",
   // Repository (for the footer "view source" link). TODO_EDU: confirm name.
-  sourceUrl: "https://github.com/iHadesj/portfolio-hades",
+  sourceUrl: "https://github.com/iHadesj/EduardoFerreira",
   role: {
     pt: "Desenvolvedor Fullstack — Java & React/TypeScript",
     en: "Fullstack Developer — Java & React/TypeScript",
@@ -36,8 +36,8 @@ export const siteConfig = {
   } satisfies Record<Locale, string>,
   links: {
     github: "https://github.com/iHadesj",
-    linkedin: "https://linkedin.com/in/TODO_EDU", // TODO_EDU: handle do LinkedIn
-    email: "mailto:ola@eduferreira.dev", // TODO_EDU: confirmar e-mail
+    linkedin: "www.linkedin.com/in/eduardoalexandre-java", // TODO_EDU: handle do LinkedIn
+    email: "edualexandre2017@outlook.com", // TODO_EDU: confirmar e-mail
   },
 } as const;
 

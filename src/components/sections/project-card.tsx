@@ -1,9 +1,19 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Braces, Code, Coffee } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { GitHubIcon } from "@/components/icons";
 import type { Project } from "@/lib/projects";
+
+/** Glyph for covers of projects without screenshot (rodam no console/IDE). */
+function coverGlyph(stack: string[]) {
+  const glyphClass = "text-molten/60 size-12";
+  if (stack.includes("Java"))
+    return <Coffee aria-hidden className={glyphClass} strokeWidth={1.25} />;
+  if (stack.includes("JavaScript"))
+    return <Braces aria-hidden className={glyphClass} strokeWidth={1.25} />;
+  return <Code aria-hidden className={glyphClass} strokeWidth={1.25} />;
+}
 
 /**
  * Wide card with the "card link" pattern: the title link stretches over the
@@ -23,12 +33,14 @@ export function ProjectCard({ project }: { project: Project }) {
           />
         ) : (
           <div
-            className="absolute inset-0 transition-transform duration-300 group-hover:scale-[1.03]"
+            className="absolute inset-0 grid place-items-center transition-transform duration-300 group-hover:scale-[1.03]"
             style={{
               background:
                 "radial-gradient(circle at 30% 25%, color-mix(in oklab, var(--color-molten) 16%, transparent), transparent 60%), linear-gradient(160deg, #1b1622, #0f0b15)",
             }}
-          />
+          >
+            {coverGlyph(project.stack)}
+          </div>
         )}
         {project.cover ? null : (
           <span className="text-smoke absolute bottom-3 left-3 font-mono text-xs">

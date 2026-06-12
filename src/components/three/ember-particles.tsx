@@ -36,7 +36,9 @@ const vertexShader = /* glsl */ `
     vAlpha = smoothstep(0.0, 0.08, life) * smoothstep(1.0, 0.55, life);
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     gl_Position = projectionMatrix * mv;
-    gl_PointSize = aScale * uPixelRatio * (140.0 / -mv.z);
+    // Embers shrink as they rise and burn out.
+    float shrink = 1.0 - life * 0.45;
+    gl_PointSize = aScale * uPixelRatio * shrink * (34.0 / -mv.z);
   }
 `;
 
@@ -49,8 +51,8 @@ const fragmentShader = /* glsl */ `
   void main() {
     float d = distance(gl_PointCoord, vec2(0.5));
     if (d > 0.5) discard;
-    float core = 1.0 - d * 2.0;
-    vec3 color = mix(uColorA, uColorB, vLife);
+    float core = smoothstep(0.5, 0.0, d);
+    vec3 color = mix(uColorA, uColorB, vLife) * (0.8 + 0.6 * core);
     gl_FragColor = vec4(color, vAlpha * core);
   }
 `;
@@ -76,7 +78,7 @@ export function EmberParticles({ count = 1200 }: EmberParticlesProps) {
       positions[i * 3] = Math.cos(angle) * radius;
       positions[i * 3 + 1] = -1.8 + rng() * 0.4;
       positions[i * 3 + 2] = Math.sin(angle) * radius;
-      scales[i] = 4 + rng() * 10;
+      scales[i] = 0.5 + rng() * 1.3;
       speeds[i] = 0.06 + rng() * 0.12;
       phases[i] = rng() * 10;
     }

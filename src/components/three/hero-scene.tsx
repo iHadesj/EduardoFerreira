@@ -32,11 +32,13 @@ export function HeroScene({ active, highDpr, onReady }: HeroSceneProps) {
       <PerformanceMonitor
         onDecline={() => setDegrade((d) => Math.min(2, d + 1))}
       >
-        <ambientLight intensity={0.25} />
+        <ambientLight intensity={0.4} />
+        {/* warm key light from the front so every facet reads */}
+        <directionalLight position={[1.5, 3, 4]} intensity={0.6} color="#f2c14e" />
         {/* molten rim light behind/below the shard */}
-        <pointLight position={[-2.5, -2, 2]} intensity={18} color="#e8a33d" />
+        <pointLight position={[-2.5, -2, 2]} intensity={32} color="#e8a33d" />
         {/* faint cold counter-light */}
-        <pointLight position={[3, 2.5, -2]} intensity={4} color="#3e7c8c" />
+        <pointLight position={[3, 2.5, -2]} intensity={8} color="#3e7c8c" />
         <ObsidianShard frozen={frozen} />
         <EmberParticles count={particleCount} />
       </PerformanceMonitor>
