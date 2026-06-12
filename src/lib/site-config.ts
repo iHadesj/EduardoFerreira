@@ -36,7 +36,7 @@ export const siteConfig = {
   } satisfies Record<Locale, string>,
   links: {
     github: "https://github.com/iHadesj",
-    linkedin: "www.linkedin.com/in/eduardoalexandre-java", // TODO_EDU: handle do LinkedIn
+    linkedin: "linkedin.com/in/eduardoalexandre-java", // TODO_EDU: handle do LinkedIn
     email: "edualexandre2017@outlook.com", // TODO_EDU: confirmar e-mail
   },
 } as const;
