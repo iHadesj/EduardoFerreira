@@ -1,0 +1,69 @@
+---
+title: Kiosk Interativo Catupiry
+slug: catalogo-catupiry
+summary: Catálogo touch-first para totem de loja conceito — produtos, receitas e história da marca em JS puro.
+problem: Transformar o acervo da marca num catálogo navegável por toque em loja física — leve, direto e à prova de visitante apressado.
+# TODO_EDU: confirmar a data real do projeto.
+date: 2026-05-01
+cover: /projects/catalogo-catupiry.png
+stack: [JavaScript, CSS, HTML]
+repo: https://github.com/iHadesj/CatalogoCatupiry1
+demo: https://catalogo-catupiry1.vercel.app
+status: shipped
+order: 5
+highlights:
+  - 120 produtos e 22 categorias navegáveis por toque
+  - JS, CSS e HTML puros — sem framework e sem etapa de build
+  - Assets mapeados em source-urls.json, conteúdo separado de código
+metrics:
+  - label: Plataforma
+    value: Totem touch
+  - label: Produtos
+    value: "120"
+  - label: Stack
+    value: JS puro
+---
+
+## O problema
+
+Uma loja conceito precisava de um catálogo da marca para totem touchscreen:
+produtos, receitas e mais de um século de história da Catupiry, navegáveis por
+qualquer visitante sem instrução nenhuma. Totem muda os requisitos: alvos de
+toque grandes, jornadas curtas, zero teclado — e a aplicação fica o dia inteiro
+em tela cheia, então abrir rápido e nunca quebrar importa mais que qualquer
+conveniência de desenvolvimento.
+
+## Decisões técnicas
+
+- **JS, CSS e HTML puros, sem framework.** Para uma vitrine que roda sozinha
+  num totem, trazer React/build/pipeline seria peso sem retorno. Sem etapa de
+  build, qualquer ajuste é editar e publicar.
+- **Touch-first de verdade.** Botões grandes, navegação rasa e jornadas
+  explícitas a partir da home ("Explorar produtos", "Ver receitas"), com
+  atalhos de acesso rápido para as seções de história e loja.
+- **Assets tratados como dados.** Packshots, banners, receitas e imagens
+  históricas vivem numa árvore de pastas previsível, e o `source-urls.json`
+  mapeia a origem de cada arquivo — atualizar o catálogo é mexer em conteúdo,
+  não em código.
+
+## Arquitetura
+
+Front estático servido pela Vercel: HTML + CSS + JS vanilla, com o conteúdo do
+catálogo versionado junto do código. Sem backend e sem banco — tudo que o totem
+precisa está no próprio deploy, o que simplifica operação e elimina pontos de
+falha em loja.
+
+## Resultados
+
+- Catálogo com 120 produtos, 22 categorias e 4 marcas/linhas navegável por
+  toque.
+- Seções de produtos, receitas, história e loja conceito numa jornada única.
+- Deploy estático na Vercel, no ar em
+  [catalogo-catupiry1.vercel.app](https://catalogo-catupiry1.vercel.app).
+
+## O que eu faria diferente
+
+Geraria as telas de produto a partir de um JSON único de catálogo, em vez de
+conteúdo e marcação andarem juntos. E adicionaria um modo offline explícito
+(service worker) para o totem sobreviver a quedas de rede da loja sem tela
+branca.
