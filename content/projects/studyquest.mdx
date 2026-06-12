@@ -1,0 +1,57 @@
+---
+title: StudyQuest
+slug: studyquest
+summary: App de estudos gamificado, organizado como monorepo, com deploy contínuo na Vercel.
+problem: Manter constância nos estudos é difícil — o StudyQuest transforma a rotina em progressão de jogo.
+date: 2026-03-01
+# TODO_EDU: o app só renderiza após login — salvar um screenshot logado em
+# public/projects/studyquest.png e restaurar `cover: /projects/studyquest.png`.
+stack: [TypeScript, Monorepo, Vercel]
+demo: https://go-studyquest.vercel.app
+status: in-progress
+featured: true
+order: 2
+highlights:
+  - Estrutura de monorepo separando app e pacotes compartilhados
+  - "TODO_EDU: mecânicas de gamificação implementadas (XP, streaks, quests?)"
+  - "TODO_EDU: stack final (framework, banco, auth)"
+metrics:
+  - label: Estrutura
+    value: Monorepo
+  - label: Deploy
+    value: Vercel
+  - label: Status
+    value: Em evolução
+---
+
+## O problema
+
+Estudar com constância é menos um problema de conteúdo e mais um problema de
+motivação: a recompensa é distante e o progresso, invisível. O StudyQuest
+ataca isso emprestando a gramática dos jogos — transformar sessões de estudo
+em progressão visível, com objetivos curtos e feedback imediato.
+
+## Decisões técnicas
+
+> **TODO_EDU:** o repositório (`studyquest-monorepo`) é privado — preencher as
+> decisões abaixo com base no código real antes de publicar como definitivo.
+
+- **Monorepo.** App e pacotes compartilhados (UI, tipos, regras de domínio)
+  versionados juntos, com mudanças atômicas entre front e lógica.
+- **Deploy contínuo na Vercel.** Cada push vira preview; a `main` vira
+  produção em `go-studyquest.vercel.app`.
+
+## Arquitetura
+
+**TODO_EDU:** descrever a estrutura real do monorepo (apps/packages), o
+framework do front, onde vive o estado do usuário e como os dados persistem.
+
+## Resultados
+
+- App no ar em `go-studyquest.vercel.app`, em evolução contínua.
+- **TODO_EDU:** métricas de uso e mecânicas concluídas.
+
+## O que eu faria diferente
+
+**TODO_EDU:** preencher com um trade-off real do projeto — por exemplo, o que
+a estrutura de monorepo custou em setup versus o que devolveu em velocidade.

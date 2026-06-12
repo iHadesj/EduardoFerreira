@@ -1,0 +1,65 @@
+---
+title: Raiz Pilates
+slug: raiz-pilates
+summary: Landing page de conversão para um estúdio de pilates — aula experimental e agendamento via WhatsApp.
+problem: Transformar visitante em aluno com uma página leve, clara e com um único caminho de conversão.
+date: 2026-05-01
+cover: /projects/raiz-pilates.png
+stack: [HTML, CSS, JavaScript, Vercel]
+repo: https://github.com/iHadesj/RaizPilates
+demo: https://raiz-pilates.vercel.app
+status: shipped
+featured: true
+order: 3
+highlights:
+  - Seis seções com um único objetivo — levar ao WhatsApp
+  - Aula experimental gratuita como porta de entrada (CTA repetido)
+  - Front estático puro — carrega instantâneo, custo zero de infra
+metrics:
+  - label: Stack
+    value: Front puro
+  - label: Deploy
+    value: Vercel
+  - label: Conversão
+    value: WhatsApp
+---
+
+## O problema
+
+Um estúdio de pilates não precisa de um sistema — precisa que quem chega à
+página marque a primeira aula. O desafio de uma landing assim é editorial e
+técnico ao mesmo tempo: contar o método em poucas seções, remover qualquer
+atrito do agendamento e fazer tudo isso numa página que abre rápido em
+qualquer celular.
+
+## Decisões técnicas
+
+- **Front estático puro (HTML + CSS + JS), sem framework.** Uma landing de
+  seção única não justifica build pipeline. O custo de manutenção cai para
+  "editar um arquivo", e o tempo de carregamento fica imbatível.
+- **WhatsApp como único funil de conversão.** Nada de formulário com backend,
+  validação e e-mail transacional: o CTA leva direto para a conversa, que é
+  onde o público desse nicho já agenda. Menos código, menos atrito.
+- **Aula experimental gratuita como oferta central.** A página inteira
+  converge para um único pedido, repetido no hero, no meio e no fim.
+- **Deploy na Vercel.** Estático, gratuito e sempre no ar — sem servidor para
+  manter.
+
+## Arquitetura
+
+Página única servida como artefato estático pela Vercel: hero, método,
+onboarding em três passos ("Descoberta Raiz"), benefícios, estúdio,
+depoimentos e FAQ — cada seção com CTA apontando para o WhatsApp. Sem banco,
+sem API, sem estado de servidor.
+
+## Resultados
+
+- Landing completa no ar, com seis seções e funil único de conversão.
+- Custo de infraestrutura zero e manutenção trivial.
+- **Métrica a coletar:** taxa de clique nos CTAs de WhatsApp.
+
+## O que eu faria diferente
+
+Adicionaria medição desde o primeiro dia (eventos de clique nos CTAs) para
+saber qual seção converte, e geraria as imagens em formatos modernos
+(AVIF/WebP com `srcset`) para baixar ainda mais o peso da página.
