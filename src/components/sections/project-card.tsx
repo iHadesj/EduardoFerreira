@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -12,16 +13,28 @@ export function ProjectCard({ project }: { project: Project }) {
   return (
     <article className="group border-ash bg-basalt hover:border-molten/40 hover:glow-molten relative grid gap-6 rounded-lg border p-5 transition-colors duration-200 md:grid-cols-[minmax(0,20rem)_1fr] md:p-6">
       <div className="border-ash/70 relative aspect-[16/10] overflow-hidden rounded-md border">
-        <div
-          className="absolute inset-0 transition-transform duration-300 group-hover:scale-[1.03]"
-          style={{
-            background:
-              "radial-gradient(circle at 30% 25%, color-mix(in oklab, var(--color-molten) 16%, transparent), transparent 60%), linear-gradient(160deg, #1b1622, #0f0b15)",
-          }}
-        />
-        <span className="text-smoke absolute bottom-3 left-3 font-mono text-xs">
-          {project.slug}
-        </span>
+        {project.cover ? (
+          <Image
+            src={project.cover}
+            alt={`Tela do projeto ${project.title}`}
+            fill
+            sizes="(min-width: 768px) 20rem, 100vw"
+            className="object-cover object-top transition-transform duration-300 group-hover:scale-[1.03]"
+          />
+        ) : (
+          <div
+            className="absolute inset-0 transition-transform duration-300 group-hover:scale-[1.03]"
+            style={{
+              background:
+                "radial-gradient(circle at 30% 25%, color-mix(in oklab, var(--color-molten) 16%, transparent), transparent 60%), linear-gradient(160deg, #1b1622, #0f0b15)",
+            }}
+          />
+        )}
+        {project.cover ? null : (
+          <span className="text-smoke absolute bottom-3 left-3 font-mono text-xs">
+            {project.slug}
+          </span>
+        )}
       </div>
 
       <div className="flex flex-col gap-3">

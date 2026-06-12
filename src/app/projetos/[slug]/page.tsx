@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
@@ -103,6 +104,19 @@ export default async function ProjectPage({ params }: PageProps) {
           ) : null}
         </div>
       </header>
+
+      {project.cover ? (
+        <div className="border-ash relative mt-10 aspect-[16/9] overflow-hidden rounded-lg border">
+          <Image
+            src={project.cover}
+            alt={`Tela do projeto ${project.title}`}
+            fill
+            priority
+            sizes="(min-width: 1024px) 60rem, 100vw"
+            className="object-cover object-top"
+          />
+        </div>
+      ) : null}
 
       <article className={`mt-10 ${proseClass}`}>
         <MDXContent code={project.content} />
