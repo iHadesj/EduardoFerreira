@@ -29,9 +29,8 @@ export function Hero() {
               <ScrambleText text="Edu Ferreira" />
             </span>
             <span className="text-smoke mt-3 block max-w-[18ch] text-[length:clamp(1.5rem,3.5vw,2.5rem)] leading-[1.1]">
-              construo sistemas do{" "}
-              <span className="text-gradient-molten">alicerce</span> à
-              interface.
+              Stack{" "}
+              <span className="text-gradient-molten">completa</span>
             </span>
           </h1>
 

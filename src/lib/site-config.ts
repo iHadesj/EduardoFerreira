@@ -27,8 +27,8 @@ export const siteConfig = {
     en: "Fullstack Developer — Java & React/TypeScript",
   } satisfies Record<Locale, string>,
   headline: {
-    pt: "Construo sistemas do alicerce à interface.",
-    en: "I build systems from the foundation to the interface.",
+    pt: "Stack completa.",
+    en: "Full stack, fully.",
   } satisfies Record<Locale, string>,
   description: {
     pt: "Backend em Java/Spring, frontend em React e TypeScript. Arquitetura, testes e performance — documentados em case studies.",
