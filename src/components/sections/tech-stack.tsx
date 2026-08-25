@@ -40,7 +40,6 @@ export function TechStack() {
         <SectionHeading
           eyebrow="ferramentas"
           title="O que eu tenho usado."
-          description="Sem barrinha de porcentagem, porque ninguém sabe medir isso de verdade. É só a lista do que aparece nos meus projetos — back-end em cima, front-end embaixo."
         />
       </div>
 

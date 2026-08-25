@@ -126,7 +126,7 @@
     "title": "Portfolio Pessoal",
     "slug": "portfolio-pessoal",
     "summary": "Este site — Next.js 16, 3D interativo e performance medida, construído a partir de uma spec executável.",
-    "problem": "Provar senioridade de frontend num único artefato — rápido como texto, memorável como um jogo.",
+    "problem": "Provar experiência de frontend num único artefato — rápido como texto, memorável como um jogo.",
     "date": "2026-06-01T00:00:00.000Z",
     "cover": "/projects/portfolio-pessoal.png",
     "stack": [
@@ -247,39 +247,44 @@
   {
     "title": "StudyQuest",
     "slug": "studyquest",
-    "summary": "App de estudos gamificado, organizado como monorepo, com deploy contínuo na Vercel.",
-    "problem": "Manter constância nos estudos é difícil — o StudyQuest transforma a rotina em progressão de jogo.",
+    "summary": "Plataforma de estudos gamificada com trilhas por matéria, progressão persistida e partidas em tempo real.",
+    "problem": "Manter constância nos estudos é difícil — o StudyQuest transforma a rotina em progressão visível e desafios curtos.",
     "date": "2026-03-01T00:00:00.000Z",
     "cover": "/projects/studyquest.png",
+    "coverAlt": "Tela inicial do StudyQuest com matérias organizadas por área e barras de progresso coloridas.",
     "stack": [
+      "React",
       "TypeScript",
-      "Monorepo",
-      "Vercel"
+      "Express",
+      "Firebase",
+      "Socket.IO",
+      "Zustand"
     ],
+    "repo": "https://github.com/iHadesj/studyquest-monorepo",
     "demo": "https://go-studyquest.vercel.app",
     "featured": true,
     "order": 2,
     "highlights": [
-      "Estrutura de monorepo separando app e pacotes compartilhados",
-      "TODO_EDU: mecânicas de gamificação implementadas (XP, streaks, quests?)",
-      "TODO_EDU: stack final (framework, banco, auth)"
+      "Conteúdo e exercícios organizados em 11 matérias com progressão por nível",
+      "XP, conquistas, ranking e perfil sincronizados com o Firebase",
+      "Duelos multiplayer com convites, salas e pontuação em tempo real"
     ],
     "metrics": [
       {
-        "label": "Estrutura",
-        "value": "Monorepo"
+        "label": "Conteúdo",
+        "value": "11 matérias"
       },
       {
-        "label": "Deploy",
-        "value": "Vercel"
+        "label": "Tempo real",
+        "value": "Socket.IO"
       },
       {
-        "label": "Status",
-        "value": "Em evolução"
+        "label": "Persistência",
+        "value": "Firebase"
       }
     ],
     "status": "in-progress",
-    "content": "const{Fragment:e,jsx:o,jsxs:n}=arguments[0];function _createMdxContent(r){const s={blockquote:\"blockquote\",code:\"code\",h2:\"h2\",li:\"li\",p:\"p\",strong:\"strong\",ul:\"ul\",...r.components};return n(e,{children:[o(s.h2,{children:\"O problema\"}),\"\\n\",o(s.p,{children:\"Estudar com constância é menos um problema de conteúdo e mais um problema de\\r\\nmotivação: a recompensa é distante e o progresso, invisível. O StudyQuest\\r\\nataca isso emprestando a gramática dos jogos — transformar sessões de estudo\\r\\nem progressão visível, com objetivos curtos e feedback imediato.\"}),\"\\n\",o(s.h2,{children:\"Decisões técnicas\"}),\"\\n\",n(s.blockquote,{children:[\"\\n\",n(s.p,{children:[o(s.strong,{children:\"TODO_EDU:\"}),\" o repositório (\",o(s.code,{children:\"studyquest-monorepo\"}),\") é privado — preencher as\\r\\ndecisões abaixo com base no código real antes de publicar como definitivo.\"]}),\"\\n\"]}),\"\\n\",n(s.ul,{children:[\"\\n\",n(s.li,{children:[o(s.strong,{children:\"Monorepo.\"}),\" App e pacotes compartilhados (UI, tipos, regras de domínio)\\r\\nversionados juntos, com mudanças atômicas entre front e lógica.\"]}),\"\\n\",n(s.li,{children:[o(s.strong,{children:\"Deploy contínuo na Vercel.\"}),\" Cada push vira preview; a \",o(s.code,{children:\"main\"}),\" vira\\r\\nprodução em \",o(s.code,{children:\"go-studyquest.vercel.app\"}),\".\"]}),\"\\n\"]}),\"\\n\",o(s.h2,{children:\"Arquitetura\"}),\"\\n\",n(s.p,{children:[o(s.strong,{children:\"TODO_EDU:\"}),\" descrever a estrutura real do monorepo (apps/packages), o\\r\\nframework do front, onde vive o estado do usuário e como os dados persistem.\"]}),\"\\n\",o(s.h2,{children:\"Resultados\"}),\"\\n\",n(s.ul,{children:[\"\\n\",n(s.li,{children:[\"App no ar em \",o(s.code,{children:\"go-studyquest.vercel.app\"}),\", em evolução contínua.\"]}),\"\\n\",n(s.li,{children:[o(s.strong,{children:\"TODO_EDU:\"}),\" métricas de uso e mecânicas concluídas.\"]}),\"\\n\"]}),\"\\n\",o(s.h2,{children:\"O que eu faria diferente\"}),\"\\n\",n(s.p,{children:[o(s.strong,{children:\"TODO_EDU:\"}),\" preencher com um trade-off real do projeto — por exemplo, o que\\r\\na estrutura de monorepo custou em setup versus o que devolveu em velocidade.\"]})]})}return{default:function(e={}){const{wrapper:n}=e.components||{};return n?o(n,{...e,children:o(_createMdxContent,{...e})}):_createMdxContent(e)}};",
+    "content": "const{Fragment:e,jsx:a,jsxs:n}=arguments[0];function _createMdxContent(o){const r={code:\"code\",h2:\"h2\",li:\"li\",p:\"p\",strong:\"strong\",ul:\"ul\",...o.components};return n(e,{children:[a(r.h2,{children:\"O problema\"}),\"\\n\",a(r.p,{children:\"Estudar com constância é menos um problema de acesso ao conteúdo e mais um\\nproblema de motivação: a recompensa costuma ser distante e o progresso,\\ninvisível. O StudyQuest aproxima esse retorno ao transformar cada sessão em\\numa sequência curta de conteúdo, exercícios e recompensas visíveis.\"}),\"\\n\",a(r.h2,{children:\"Decisões técnicas\"}),\"\\n\",n(r.ul,{children:[\"\\n\",n(r.li,{children:[a(r.strong,{children:\"React, Vite e TypeScript no frontend.\"}),\" A interface é dividida em telas de\\nmatéria, nível, conteúdo, exercícios, ranking, conquistas e multiplayer. O\\nZustand concentra o estado de progresso já sincronizado com o usuário.\"]}),\"\\n\",n(r.li,{children:[a(r.strong,{children:\"Firebase para identidade e progresso.\"}),\" O Firebase Authentication cuida da\\nsessão, enquanto o Firestore mantém XP, estrelas, tentativas, níveis\\nconcluídos, perfil, amizades e conquistas. Um listener em tempo real hidrata\\na aplicação quando esses dados mudam.\"]}),\"\\n\",n(r.li,{children:[a(r.strong,{children:\"Express e TypeScript no backend.\"}),\" Rotas e controllers expõem matérias,\\nexercícios e usuários. O conteúdo fica separado em arquivos JSON por\\ndisciplina, e o \",a(r.code,{children:\"GameManager\"}),\" reúne esse banco para sortear perguntas sem\\nduplicar identificadores.\"]}),\"\\n\",n(r.li,{children:[a(r.strong,{children:\"Socket.IO no multiplayer.\"}),\" Convites, salas, estado de prontidão, respostas\\ne placar trafegam por eventos. As partidas trabalham com tempo limitado e\\npontuação proporcional à velocidade da resposta.\"]}),\"\\n\"]}),\"\\n\",a(r.h2,{children:\"Arquitetura\"}),\"\\n\",n(r.p,{children:[\"O repositório mantém duas aplicações no mesmo lugar: \",a(r.code,{children:\"frontend/\"}),\" e \",a(r.code,{children:\"backend/\"}),\".\\nNo cliente, as telas consomem a API REST por um serviço Axios e os eventos de\\njogo pelo cliente Socket.IO; autenticação e atualizações do perfil vêm\\ndiretamente do Firebase. No servidor, o Express encaminha as requisições para\\ncontrollers, enquanto o Socket.IO mantém o estado das salas e usa o Firebase\\nAdmin para persistir as recompensas de XP.\"]}),\"\\n\",a(r.h2,{children:\"Resultados\"}),\"\\n\",n(r.ul,{children:[\"\\n\",a(r.li,{children:\"Jornada completa de autenticação, perfil, seleção de matéria, níveis,\\nconteúdo e exercícios.\"}),\"\\n\",a(r.li,{children:\"Banco de perguntas cobrindo 11 matérias, de matemática e programação a\\nhistória, inglês e música.\"}),\"\\n\",a(r.li,{children:\"Camada de gamificação com XP, estrelas, conquistas, ranking e modo\\nBrainstorm.\"}),\"\\n\",a(r.li,{children:\"Experiência social com amizades, chat, convites e duelos multiplayer em tempo\\nreal.\"}),\"\\n\"]}),\"\\n\",a(r.h2,{children:\"O que eu faria diferente\"}),\"\\n\",a(r.p,{children:\"Formalizaria o repositório como um workspace para compartilhar tipos e schemas\\nde validação entre frontend e backend e centralizar os scripts de qualidade.\\nTambém moveria o estado das salas para uma camada própria, com Redis para\\npermitir múltiplas instâncias, e ampliaria a cobertura automatizada dos fluxos\\nde progresso e multiplayer. Credenciais administrativas ficariam somente no\\ngerenciador de secrets do ambiente de deploy, nunca em arquivos versionáveis.\"})]})}return{default:function(e={}){const{wrapper:n}=e.components||{};return n?a(n,{...e,children:a(_createMdxContent,{...e})}):_createMdxContent(e)}};",
     "url": "/projetos/studyquest"
   }
 ]

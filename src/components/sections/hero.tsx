@@ -52,7 +52,7 @@ export function Hero() {
 
           <p className="prose-measure font-body text-lead text-smoke">
             Backend em Java/Spring, frontend em React e TypeScript. Atualmente
-            afiando arquitetura, testes e performance.
+            focando em arquitetura, testes e performance.
           </p>
 
           <div className="flex flex-wrap items-center gap-4 pt-2">

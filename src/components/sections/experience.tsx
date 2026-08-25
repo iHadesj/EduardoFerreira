@@ -19,7 +19,7 @@ const TIMELINE: TimelineItem[] = [
     org: "VTT",
     bullets: [
       "Minha primeira experiência com projeto de verdade: prazo, gente usando e código que não é só meu — bem diferente de estudar sozinho",
-      "TODO_EDU: principal entrega ou responsabilidade (com impacto/número)",
+      "", //TODO_EDU: principal entrega ou responsabilidade (com impacto/número)
     ],
     stack: ["React", "TypeScript", "Java"],
   },

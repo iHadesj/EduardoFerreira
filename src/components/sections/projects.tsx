@@ -15,7 +15,7 @@ export function Projects() {
       <SectionHeading
         eyebrow="projetos"
         title="Coisas que eu construí."
-        description="Em cada um eu conto o que queria resolver, como resolvi e o que faria diferente hoje. Nem tudo saiu perfeito, e isso também está escrito lá."
+        description="Em cada um eu conto o que queria resolver, como resolvi e o que faria diferente hoje."
       />
 
       <div className="mt-10 flex flex-col gap-6">

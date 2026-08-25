@@ -3,7 +3,7 @@ import { Reveal } from "@/components/ui/reveal";
 import { ScrollSection } from "@/components/layout/scroll-flow";
 
 const FICHA = [
-  { k: "onde", v: "Brasil" }, // TODO_EDU: cidade exata
+  { k: "onde", v: "SP-ZS" }, // TODO_EDU: cidade exata
   { k: "no dia a dia", v: "Java · Spring · React · TS" },
   { k: "aprendendo", v: "JUnit · Vitest · Playwright" },
 ];
@@ -30,14 +30,11 @@ export function About() {
           </p>
           <p>
             Depois fui pro front com React e TypeScript e descobri que gosto dos
-            dois lados. Este site é meu quintal de{" "}
-            <span className="text-bone">experimentos</span> — está todo no
-            GitHub, com o que deu certo e o que eu ainda quero arrumar.
+            dois stacks. Este site é minha área de{" "}
+            <span className="text-bone">experimentos</span> — está tudo no
+            GitHub, com o que foi concluído e o que eu ainda quero melhorar.
           </p>
           <p>
-            Hoje divido o dia entre estágio e faculdade. O que eu procuro é um
-            time com paciência pra explicar e espaço pra eu colocar a mão em
-            código de verdade. Aviso desde já: eu pergunto muito.
             {/* TODO_EDU: ajustar ao objetivo atual */}
           </p>
         </Reveal>

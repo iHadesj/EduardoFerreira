@@ -1,56 +1,79 @@
 ---
 title: StudyQuest
 slug: studyquest
-summary: App de estudos gamificado, organizado como monorepo, com deploy contínuo na Vercel.
-problem: Manter constância nos estudos é difícil — o StudyQuest transforma a rotina em progressão de jogo.
+summary: Plataforma de estudos gamificada com trilhas por matéria, progressão persistida e partidas em tempo real.
+problem: Manter constância nos estudos é difícil — o StudyQuest transforma a rotina em progressão visível e desafios curtos.
 date: 2026-03-01
 cover: /projects/studyquest.png
-stack: [TypeScript, Monorepo, Vercel]
+coverAlt: Tela inicial do StudyQuest com matérias organizadas por área e barras de progresso coloridas.
+stack: [React, TypeScript, Express, Firebase, Socket.IO, Zustand]
+repo: https://github.com/iHadesj/studyquest-monorepo
 demo: https://go-studyquest.vercel.app
 status: in-progress
 featured: true
 order: 2
 highlights:
-  - Estrutura de monorepo separando app e pacotes compartilhados
-  - "TODO_EDU: mecânicas de gamificação implementadas (XP, streaks, quests?)"
-  - "TODO_EDU: stack final (framework, banco, auth)"
+  - Conteúdo e exercícios organizados em 11 matérias com progressão por nível
+  - XP, conquistas, ranking e perfil sincronizados com o Firebase
+  - Duelos multiplayer com convites, salas e pontuação em tempo real
 metrics:
-  - label: Estrutura
-    value: Monorepo
-  - label: Deploy
-    value: Vercel
-  - label: Status
-    value: Em evolução
+  - label: Conteúdo
+    value: 11 matérias
+  - label: Tempo real
+    value: Socket.IO
+  - label: Persistência
+    value: Firebase
 ---
 
 ## O problema
 
-Estudar com constância é menos um problema de conteúdo e mais um problema de
-motivação: a recompensa é distante e o progresso, invisível. O StudyQuest
-ataca isso emprestando a gramática dos jogos — transformar sessões de estudo
-em progressão visível, com objetivos curtos e feedback imediato.
+Estudar com constância é menos um problema de acesso ao conteúdo e mais um
+problema de motivação: a recompensa costuma ser distante e o progresso,
+invisível. O StudyQuest aproxima esse retorno ao transformar cada sessão em
+uma sequência curta de conteúdo, exercícios e recompensas visíveis.
 
 ## Decisões técnicas
 
-> **TODO_EDU:** o repositório (`studyquest-monorepo`) é privado — preencher as
-> decisões abaixo com base no código real antes de publicar como definitivo.
-
-- **Monorepo.** App e pacotes compartilhados (UI, tipos, regras de domínio)
-  versionados juntos, com mudanças atômicas entre front e lógica.
-- **Deploy contínuo na Vercel.** Cada push vira preview; a `main` vira
-  produção em `go-studyquest.vercel.app`.
+- **React, Vite e TypeScript no frontend.** A interface é dividida em telas de
+  matéria, nível, conteúdo, exercícios, ranking, conquistas e multiplayer. O
+  Zustand concentra o estado de progresso já sincronizado com o usuário.
+- **Firebase para identidade e progresso.** O Firebase Authentication cuida da
+  sessão, enquanto o Firestore mantém XP, estrelas, tentativas, níveis
+  concluídos, perfil, amizades e conquistas. Um listener em tempo real hidrata
+  a aplicação quando esses dados mudam.
+- **Express e TypeScript no backend.** Rotas e controllers expõem matérias,
+  exercícios e usuários. O conteúdo fica separado em arquivos JSON por
+  disciplina, e o `GameManager` reúne esse banco para sortear perguntas sem
+  duplicar identificadores.
+- **Socket.IO no multiplayer.** Convites, salas, estado de prontidão, respostas
+  e placar trafegam por eventos. As partidas trabalham com tempo limitado e
+  pontuação proporcional à velocidade da resposta.
 
 ## Arquitetura
 
-**TODO_EDU:** descrever a estrutura real do monorepo (apps/packages), o
-framework do front, onde vive o estado do usuário e como os dados persistem.
+O repositório mantém duas aplicações no mesmo lugar: `frontend/` e `backend/`.
+No cliente, as telas consomem a API REST por um serviço Axios e os eventos de
+jogo pelo cliente Socket.IO; autenticação e atualizações do perfil vêm
+diretamente do Firebase. No servidor, o Express encaminha as requisições para
+controllers, enquanto o Socket.IO mantém o estado das salas e usa o Firebase
+Admin para persistir as recompensas de XP.
 
 ## Resultados
 
-- App no ar em `go-studyquest.vercel.app`, em evolução contínua.
-- **TODO_EDU:** métricas de uso e mecânicas concluídas.
+- Jornada completa de autenticação, perfil, seleção de matéria, níveis,
+  conteúdo e exercícios.
+- Banco de perguntas cobrindo 11 matérias, de matemática e programação a
+  história, inglês e música.
+- Camada de gamificação com XP, estrelas, conquistas, ranking e modo
+  Brainstorm.
+- Experiência social com amizades, chat, convites e duelos multiplayer em tempo
+  real.
 
 ## O que eu faria diferente
 
-**TODO_EDU:** preencher com um trade-off real do projeto — por exemplo, o que
-a estrutura de monorepo custou em setup versus o que devolveu em velocidade.
+Formalizaria o repositório como um workspace para compartilhar tipos e schemas
+de validação entre frontend e backend e centralizar os scripts de qualidade.
+Também moveria o estado das salas para uma camada própria, com Redis para
+permitir múltiplas instâncias, e ampliaria a cobertura automatizada dos fluxos
+de progresso e multiplayer. Credenciais administrativas ficariam somente no
+gerenciador de secrets do ambiente de deploy, nunca em arquivos versionáveis.
