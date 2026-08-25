@@ -40,7 +40,15 @@ export function RepoCard({ repo }: { repo: RepoDTO }) {
             </>
           ) : null}
         </span>
-        <span>{formatRelativeTime(repo.pushedAt)}</span>
+        {/* The page is prerendered, so this label is baked at build time and
+            recomputed at hydration — "há 45 minutos" vs "há 47 minutos" is a
+            real text mismatch (React #418). The difference is intentional and
+            harmless for a live timestamp, which is exactly what
+            suppressHydrationWarning is for; the client value wins and stays
+            accurate. `dateTime` keeps the machine-readable instant. */}
+        <time dateTime={repo.pushedAt} suppressHydrationWarning>
+          {formatRelativeTime(repo.pushedAt)}
+        </time>
       </div>
     </a>
   );

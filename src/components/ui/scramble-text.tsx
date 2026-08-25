@@ -55,9 +55,12 @@ export function ScrambleText({
     return () => cancelAnimationFrame(raf);
   }, [text, durationMs, reduced]);
 
+  // `reduced` only turns true one tick after hydration, so a scramble can
+  // already be mid-flight. Deriving here (instead of resetting state) snaps
+  // the heading back to real text without freezing on the last frame's glyphs.
   return (
     <span className={className} aria-label={text}>
-      <span aria-hidden>{display}</span>
+      <span aria-hidden>{reduced ? text : display}</span>
     </span>
   );
 }

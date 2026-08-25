@@ -1,0 +1,96 @@
+---
+title: Change (In The House Of Flies)
+slug: change-in-the-house-of-flies
+summary: Microsite de faixa única — player offline, espectro em tempo real via Web Audio e letra sincronizada que reage ao refrão em 92 BPM.
+problem: Traduzir uma música inteira em interface — sem streaming, sem hospedar áudio protegido e sem quebrar quem prefere menos movimento.
+date: 2026-08-21
+cover: /projects/change-in-the-house-of-flies.jpg
+stack: [JavaScript, Web Audio API, Vite]
+repo: https://github.com/iHadesj/change_in_the_house_of_flies
+demo: https://change-in-the-house-of-flies.vercel.app
+status: shipped
+featured: true
+order: 7
+highlights:
+  - Espectro em tempo real com Web Audio API, reagindo ao áudio local
+  - Letra sincronizada com sincronizador embutido e export em .lrc
+  - Refrão dispara intensidade — halo, zoom, tremor e moscas animadas
+  - Media Session API para controle pela tela de bloqueio
+metrics:
+  - label: Faixa
+    value: "1"
+  - label: Áudio
+    value: 100% local
+  - label: BPM
+    value: "92"
+---
+
+## O problema
+
+Este é o projeto sem cliente e sem métrica — o que eu queria era ver até onde
+dá para levar uma interface quando o conteúdo é uma faixa só. "Change (In The
+House Of Flies)", do *White Pony*, é uma música de colapso lento: começa
+contida e desaba no refrão. A pergunta era se a página conseguia fazer a mesma
+curva.
+
+Duas restrições apareceram de imediato. A primeira é legal: **não hospedar o
+áudio.** O repositório não contém MP3 nem letra — material protegido não entra.
+A segunda é de acessibilidade: uma página construída sobre pulsação e movimento
+precisa continuar utilizável para quem pediu para reduzir animação.
+
+## Decisões técnicas
+
+- **O áudio é do usuário, não do site.** O player lê um arquivo local — colocado
+  em `public/music/change.mp3` ou arrastado direto para a página. Isso resolve
+  a questão de direitos sem meio-termo e, de quebra, faz o site inteiro
+  funcionar offline: nada é transmitido, nada depende de rede.
+- **Espectro real, não decorativo.** A visualização sai da Web Audio API
+  analisando o áudio que está tocando de verdade. Em iOS/iPadOS, onde a
+  análise em segundo plano é restrita, o site cai para um espectro simulado em
+  vez de simplesmente congelar.
+- **Intensidade atrelada ao refrão.** Quando a música entra no refrão, a
+  interface responde em conjunto — halo violeta pulsando, brilho no título,
+  zoom no fundo, tremor no player, espectro expandido, ticker acelerado e as
+  moscas atravessando a tela mais rápido. A pulsação segue os 92 BPM da faixa.
+- **`prefers-reduced-motion` como caminho de primeira classe.** Quem pede menos
+  movimento recebe a experiência sem tremor, zoom ou moscas animadas — e ainda
+  com player, letra e espectro funcionando. Efeito é tempero, não estrutura.
+- **Letra como dado, com ferramenta junto.** O site aceita `.txt` e `.lrc` em
+  `public/lyrics/` e traz um sincronizador embutido: marcar a linha com Enter,
+  ajustar em passos de ±0,25 s e exportar o `.lrc` pronto. Sincronizar letra na
+  mão é tedioso o bastante para valer construir a ferramenta.
+
+## Arquitetura
+
+Front estático servido pela Vercel, com build Node/Vite. `public/music/` e
+`public/lyrics/` são pontos de extensão vazios no repositório — o deploy
+público sobe sem áudio, e quem clona coloca o próprio arquivo. Todo o
+processamento (decodificação, análise de espectro, sincronia de letra) acontece
+no navegador; não existe backend nem estado de servidor.
+
+A identidade visual vem do próprio disco: paleta *White Pony* — osso, violeta
+dessaturado e um preto puxado para o azul — com tipografia serifada em corpo
+grande e um fundo procedural de moscas atravessando a tela. Os atalhos de
+teclado seguem a convenção de player (espaço para tocar e pausar, `M` para
+mudo, `Enter` para marcar a linha no modo SYNC), e a Media Session API entrega
+o controle para a tela de bloqueio e a central de notificações, como qualquer
+app de música nativo.
+
+## Resultados
+
+- Experiência de faixa única no ar, com player, espectro reativo, letra
+  sincronizada e a curva de intensidade acompanhando o refrão.
+- Zero material protegido no repositório — o áudio é sempre do usuário.
+- Utilizável com movimento reduzido e controlável pela tela de bloqueio.
+
+## O que eu faria diferente
+
+A detecção de refrão hoje é marcada à mão, casada com esta faixa específica.
+Extrairia isso para um arquivo de configuração por música — seções, BPM e
+intensidade como dados — o que transformaria o projeto de "um microsite para
+uma faixa" em "um formato para qualquer faixa" sem reescrever a interface.
+
+Também guardaria a letra sincronizada e a última posição no armazenamento local
+para a página retomar de onde parou, e trocaria o fallback de espectro do iOS
+por algo derivado da forma de onda decodificada, em vez de simulado — mais
+honesto com o que está tocando.

@@ -1,0 +1,115 @@
+---
+title: Rota Dev
+slug: rota-dev
+summary: Plataforma de estudo feita para o trajeto — duas linhas até a Faria Lima, com editor de código, lint em português e currículo validado no build.
+problem: Quem estuda programação indo pro trabalho perde a aula no túnel — a plataforma tinha que rodar inteira no cliente.
+date: 2026-07-02
+cover: /projects/rota-dev.png
+stack: [React, JavaScript, Vite, Framer Motion]
+repo: https://github.com/iHadesj/RotaDev
+demo: https://rota-dev.vercel.app
+status: shipped
+featured: true
+order: 5
+highlights:
+  - Duas linhas de estudo — Web + React e Fullstack React + Java
+  - Editor com bateria de testes e lint que explica o erro em bom português
+  - Currículo é dado, validado por script antes de cada build
+  - Build alternativo para o navegador do Nintendo Switch
+metrics:
+  - label: Linhas
+    value: "2"
+  - label: Fases
+    value: "8"
+  - label: Currículo
+    value: Validado no build
+---
+
+## O problema
+
+O público é quem estuda no busão saindo do extremo sul de São Paulo — uma hora
+e meia de trajeto que é, na prática, a única janela de estudo do dia. Só que
+esse é o pior ambiente de rede possível: túnel, 3G ruim, sinal que cai no meio
+de um vídeo. Qualquer plataforma que dependa de requisição a cada passo perde o
+aluno exatamente no momento em que ele tem tempo livre.
+
+Daí a restrição que definiu o projeto inteiro: **a aula não pode depender da
+rede.** Não como degradação elegante, mas como modo normal de uso.
+
+## Decisões técnicas
+
+- **Currículo é dado, não tela.** As oito fases vivem em
+  `src/data/curriculum.js` e `src/data/expandedCurriculum.js` — conceitos,
+  desafios, critérios de aceite. As telas só renderizam esse dado, então uma
+  parada nova é conteúdo, não componente.
+- **Conteúdo validado antes de subir.** `npm test` não roda teste de unidade:
+  roda `validate-source.mjs` e `validate-curriculum.mjs` e só então o build.
+  Currículo quebrado — desafio sem resposta, critério faltando — derruba o
+  build em vez de virar tela vazia no meio do túnel. É o mesmo papel de um
+  schema, aplicado a conteúdo.
+- **Tudo embarcado no bundle.** Não existe chamada de API para carregar a
+  próxima parada, o que elimina a classe inteira de falhas que o túnel provoca.
+  O trade-off é claro: publicar conteúdo novo exige novo deploy, em troca de
+  uma sessão que nunca trava no meio.
+- **Editor próprio, sem Monaco nem CodeMirror.** Carregar um editor completo
+  pesaria mais que o app inteiro. O sandbox e o lint vivem em `src/utils`, e o
+  lint explica o erro em português comum em vez de despejar a mensagem crua do
+  runtime.
+- **Progresso local por linha.** `src/services` cuida de persistência, XP e
+  streak. Fechar o app e voltar dias depois cai exatamente onde parou, sem
+  login e sem conta para criar — atrito que, nesse contexto, custaria o aluno.
+
+## Arquitetura
+
+Front em React com Vite e Framer Motion, publicado estático na Vercel. O
+domínio é modelado como transporte público, e a metáfora organiza a navegação.
+Duas **linhas** partem do mesmo terminal:
+
+- **Linha 6X-Sul · sentido Web** — fundamentos da web, aplicação JavaScript com
+  CRUD e dashboard, migração para React e tipagem completa com TypeScript.
+- **Linha 5X-Sul · sentido Fullstack** — continuação da anterior: React no
+  front, Java e Spring no back, banco real, autenticação, autorização e
+  publicação do sistema completo.
+
+Cada **parada** entrega um conceito rápido e desafios de três tipos: quiz,
+quebra-cabeça de encaixar código e código de verdade — que o aluno digita, roda
+e vê acontecendo na tela. Acertar 3 de 5 libera o próximo ponto.
+
+Módulos do tipo `PROJETO` e `BOSS FINAL` funcionam diferente, e essa é a
+decisão de que mais gosto: **eles não abrem com quiz.** Cada um declara
+`projeto.entrega` e `projeto.criterios`, e o aluno passa pela tela de entrega
+confirmando critério por critério. Exercício verifica fundamento; critério de
+aceite verifica se a coisa foi de fato construída — misturar os dois é como se
+finge que aprendeu.
+
+Fora das linhas existem dois modos avulsos: o **Corre do Dia**, um conceito e
+dois desafios montados por dia, e o **Modo Treino**, sem trilha e sem ordem,
+com problemas no formato de entrevista técnica.
+
+Há ainda um alvo de build que não é web comum: `vite.switch.config.js` mais
+`sync-romfs.mjs` geram uma versão para o navegador do **Nintendo Switch**, com
+`@vitejs/plugin-legacy` e shims de animação para um motor de JS bem mais velho.
+Estudar no busão com o console na mão é um caso de uso real.
+
+## Resultados
+
+- Duas linhas completas no ar, do HTML ao deploy de um sistema fullstack, em
+  oito fases.
+- Aula que sobrevive ao túnel: currículo, editor, testes e lint rodam todos no
+  cliente, sem nenhuma dependência de rede durante a sessão.
+- Progresso, XP e streak preservados por linha entre sessões.
+
+## O que eu faria diferente
+
+O buraco que eu fecharia primeiro: **o app é instalável mas não tem service
+worker.** Existe `manifest.webmanifest`, ícone maskable e `display: standalone`
+— só que nada registra um SW, então a promessa de offline vale para a sessão
+já aberta, não para abrir o app do zero sem sinal. Que é exatamente o cenário
+do busão. Um Workbox com precache do bundle e dos dados de currículo fecharia
+isso sem mudar mais nada da arquitetura.
+
+Depois, dar ao lint uma camada de sugestão de correção, não só de explicação:
+hoje ele diz o que está errado em português claro, mas ainda cabe mostrar o
+caminho até o certo. E sincronizar progresso entre dispositivos — sem exigir
+conta na primeira sessão, que é justamente o atrito que o projeto evitou de
+propósito.

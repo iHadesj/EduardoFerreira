@@ -1,0 +1,116 @@
+---
+title: Levva — Loja & Sorte
+slug: levva-loja-e-sorte
+summary: Ecommerce fictício completo — 400 produtos, carteira em centavos e checkout transacional no navegador, com cassino e gacha como contraponto deliberado à compra.
+problem: Mostrar raciocínio de produto e domínio financeiro numa jornada de compra inteira, sem backend e sem dinheiro real.
+date: 2026-07-17
+cover: /projects/levva-loja-e-sorte.png
+stack: [React, TypeScript, Vite, IndexedDB]
+repo: https://github.com/iHadesj/Levva-loja-e-sorte
+demo: https://levva.vercel.app
+status: shipped
+featured: true
+order: 1
+highlights:
+  - Catálogo determinístico de 400 produtos com seed fixa e busca fuzzy
+  - Dinheiro sempre em centavos inteiros, com estorno automático no checkout
+  - Cassino e gacha com RTP declarado na interface e sorteio por crypto
+  - 29 testes cobrindo carteira, RTP, gacha e persistência
+metrics:
+  - label: Produtos
+    value: "400"
+  - label: Testes
+    value: "29"
+  - label: Persistência
+    value: 100% local
+---
+
+## O problema
+
+Uma vitrine de portfólio costuma parar na tela: catálogo bonito, carrinho que
+soma e nada atrás. Eu queria o contrário — uma jornada de compra inteira, do
+desejo à entrega, com as regras que realmente machucam em ecommerce: saldo,
+estoque, transação, falha no meio do caminho. E queria fazer isso sem backend,
+para o projeto continuar de pé anos depois sem servidor para pagar.
+
+A pergunta de produto por trás veio junto: **como desejo, escassez e risco
+influenciam uma decisão de compra?** Por isso cassino e gacha não entraram como
+funcionalidade solta. Eles são o contraponto deliberado da loja — o usuário vê
+algo que quer, compara com o saldo e escolhe entre esperar a renda diária,
+comprar algo mais barato ou aceitar uma expectativa matemática negativa.
+
+## Decisões técnicas
+
+- **Dinheiro é inteiro, sempre.** Todo valor vive em centavos
+  (`saldoCentavos: 5_000` = R$ 50,00). Nenhuma regra financeira toca ponto
+  flutuante, e entradas e saídas passam por uma única operação de carteira que
+  valida o valor, impede saldo negativo e registra o extrato.
+- **Checkout defensivo.** O saldo é debitado, estoque e pedido são gravados na
+  mesma transação do IndexedDB e qualquer falha dispara estorno automático na
+  carteira. O carrinho só é limpo depois da confirmação. É o mesmo desenho que
+  em produção viraria idempotência, reserva de estoque e conciliação.
+- **Catálogo determinístico.** `faker.seed(42)`, datas-base fixas e IDs
+  estáveis geram exatamente os mesmos 400 produtos a cada execução. Isso torna
+  os testes previsíveis e mantém favoritos, carrinho e pedidos válidos entre
+  recargas — sem nenhuma chamada externa durante a demonstração.
+- **Sorteio com `crypto.getRandomValues`.** A mecânica principal não usa
+  `Math.random()`. E o RTP teórico aparece na interface: 92,13% no caça-níquel,
+  91,67% na roleta. A vantagem da casa é informada, não escondida.
+- **Local de verdade.** IndexedDB (Dexie) para catálogo e pedidos; Zustand
+  Persist para carteira, carrinho, favoritos e coleção. Nada sai do navegador.
+
+## Arquitetura
+
+Organização por domínio, não por tipo de arquivo:
+
+```text
+src/
+├── app/                 # shell, rotas, providers e transições
+├── features/
+│   ├── cart/            # carrinho e checkout
+│   ├── casino/          # caça-níquel, roleta, áudio e celebrações
+│   ├── catalog/         # home, busca, grade virtual e produto
+│   ├── gacha/           # Máquina de Desejos, coleção e economia
+│   ├── orders/          # pedidos e evolução da entrega
+│   └── wallet/          # saldo, extrato, bônus e transações
+└── shared/
+    ├── db/              # Dexie, seed e geração do catálogo
+    ├── lib/             # dinheiro, hash, RNG e utilitários
+    ├── types/           # contratos compartilhados
+    └── ui/              # componentes reutilizáveis e visuais
+```
+
+Regras específicas ficam perto das telas que as consomem; só o que é
+genuinamente genérico sobe para `shared/ui`. A busca é fuzzy com Fuse.js, a
+grade do catálogo é virtualizada com TanStack Virtual e as rotas secundárias
+carregam sob demanda. O `vite-plugin-pwa` mantém aplicação, fontes, ícones e
+imagens disponíveis offline, com precache em torno de 4 MB.
+
+O visual é Bauhaus — formas primárias, cores chapadas, tipografia pesada, em
+CSS Modules sem framework. O componente `ProductVisual` usa fotografia quando
+existe asset para o produto e cai para uma ilustração procedural determinística
+quando não existe, o que permitiu melhorar o catálogo aos poucos sem quebrar
+nada.
+
+## Resultados
+
+- Jornada completa no ar: catálogo, busca, carrinho, checkout, pedidos com
+  linha do tempo de entrega e coleção pós-compra.
+- 29 testes automatizados cobrindo o que de fato quebra confiança — transações
+  da carteira, proteção contra saldo negativo, intervalo da renda diária, RTP
+  do caça-níquel e da roleta, raridade e pity do gacha, e a sincronização
+  idempotente que garante que um pedido entregue entra na coleção uma vez só.
+- Funciona offline e é instalável, com todo o progresso vivendo no navegador.
+
+## O que eu faria diferente
+
+O projeto é intencionalmente local e não deve ser confundido com algo pronto
+para vender. Em produção, a lista é longa e conhecida: backend autenticado com
+banco transacional, catálogo administrável, busca e recomendação no servidor,
+gateway com tokenização e webhooks, reserva concorrente de estoque, frete e
+impostos reais, observabilidade e testes de ponta a ponta.
+
+E há uma decisão que eu manteria com ainda mais cuidado: o cassino fictício
+nunca seria ligado a dinheiro real. Técnicas de retenção precisam respeitar
+autonomia, transparência e a legislação aplicável — o objetivo aqui foi tornar
+essas escolhas observáveis e questionáveis, não normalizá-las.

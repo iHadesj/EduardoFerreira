@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { HeroPoster } from "./hero-poster";
+import type { SceneTier } from "./hero-scene";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { useReducedMotionSafe } from "@/hooks/use-reduced-motion-safe";
 import { cn } from "@/lib/utils";
@@ -14,41 +15,62 @@ const HeroScene = dynamic(
 
 interface Gates {
   ok: boolean;
+  /** "full" = pointer-driven desktop scene; "lite" = touch-driven phone scene. */
+  tier: SceneTier;
   highDpr: boolean;
 }
 
+const BLOCKED: Gates = { ok: false, tier: "lite", highDpr: false };
+
+/**
+ * Capability gates. Phones are no longer excluded outright — they clear a
+ * lower bar and get the `lite` tier, which is budgeted for them. The hard
+ * blockers (saveData, 2G, no WebGL2, very low memory) still drop to the poster.
+ */
 function evaluateGates(): Gates {
-  if (typeof window === "undefined") return { ok: false, highDpr: false };
-  const fineOrWide =
-    window.matchMedia("(pointer: fine)").matches || window.innerWidth >= 1024;
+  if (typeof window === "undefined") return BLOCKED;
+
   const nav = navigator as Navigator & {
     deviceMemory?: number;
-    connection?: { saveData?: boolean };
+    connection?: { saveData?: boolean; effectiveType?: string };
   };
-  const memOk = nav.deviceMemory === undefined || nav.deviceMemory >= 4;
-  const saveDataOk = nav.connection?.saveData !== true;
+
+  // Never spend the user's data or battery against their wishes.
+  if (nav.connection?.saveData === true) return BLOCKED;
+  if (/(^|-)2g$/.test(nav.connection?.effectiveType ?? "")) return BLOCKED;
+
   let webgl2 = false;
   try {
     webgl2 = document.createElement("canvas").getContext("webgl2") !== null;
   } catch {
     webgl2 = false;
   }
-  const dpr = window.devicePixelRatio || 1;
-  return {
-    ok: fineOrWide && memOk && saveDataOk && webgl2,
-    highDpr: dpr >= 1.5,
-  };
+  if (!webgl2) return BLOCKED;
+
+  const tier: SceneTier =
+    window.matchMedia("(pointer: fine)").matches || window.innerWidth >= 1024
+      ? "full"
+      : "lite";
+
+  // Desktop keeps the ≥4GB bar; the lite tier is cheap enough to clear 3GB.
+  const memFloor = tier === "full" ? 4 : 3;
+  const mem = nav.deviceMemory;
+  if (mem !== undefined && mem < memFloor) return BLOCKED;
+  if (tier === "lite" && navigator.hardwareConcurrency < 4) return BLOCKED;
+
+  return { ok: true, tier, highDpr: (window.devicePixelRatio || 1) >= 1.5 };
 }
 
 /**
  * Gates → lazy (post-idle) load of the WebGL scene → crossfade over the poster.
- * On reduced motion, failed gates (mobile/low-memory/saveData/no-WebGL2) or a
- * runtime error, the static poster simply stays — no three.js bytes downloaded.
+ * On reduced motion, failed gates or a runtime error the static poster simply
+ * stays — no three.js bytes downloaded.
  */
 export function Hero3D({ className }: { className?: string }) {
   const reduced = useReducedMotionSafe();
   const containerRef = useRef<HTMLDivElement>(null);
   const [enabled, setEnabled] = useState(false);
+  const [tier, setTier] = useState<SceneTier>("full");
   const [highDpr, setHighDpr] = useState(false);
   const [ready, setReady] = useState(false);
   const [active, setActive] = useState(true);
@@ -59,6 +81,7 @@ export function Hero3D({ className }: { className?: string }) {
     if (!gates.ok) return;
 
     const start = () => {
+      setTier(gates.tier);
       setHighDpr(gates.highDpr);
       setEnabled(true);
     };
@@ -70,11 +93,13 @@ export function Hero3D({ className }: { className?: string }) {
       ) => number;
       cancelIdleCallback?: (handle: number) => void;
     };
+    // Phones get a longer leash so the shader compile never lands on LCP.
+    const timeout = gates.tier === "lite" ? 3000 : 2000;
     let handle = 0;
     if (win.requestIdleCallback) {
-      handle = win.requestIdleCallback(start, { timeout: 2000 });
+      handle = win.requestIdleCallback(start, { timeout });
     } else {
-      handle = window.setTimeout(start, 800);
+      handle = window.setTimeout(start, gates.tier === "lite" ? 1400 : 800);
     }
     return () => {
       if (win.cancelIdleCallback) win.cancelIdleCallback(handle);
@@ -106,6 +131,11 @@ export function Hero3D({ className }: { className?: string }) {
     };
   }, [enabled]);
 
+  // `reduced` flips to true one tick after hydration. The effect above cancels
+  // the pending idle callback, but deriving here also covers the race where it
+  // already fired — reduced motion never keeps a live canvas.
+  const showScene = enabled && !reduced;
+
   return (
     <div ref={containerRef} className={cn("relative", className)}>
       {/* Persistent ambient glow (compensates for dropped postprocessing bloom). */}
@@ -120,10 +150,10 @@ export function Hero3D({ className }: { className?: string }) {
       <HeroPoster
         className={cn(
           "absolute inset-0 transition-opacity duration-500",
-          enabled && ready ? "opacity-0" : "opacity-100",
+          showScene && ready ? "opacity-0" : "opacity-100",
         )}
       />
-      {enabled ? (
+      {showScene ? (
         <div
           className={cn(
             "absolute inset-0 transition-opacity duration-500",
@@ -133,6 +163,7 @@ export function Hero3D({ className }: { className?: string }) {
           <ErrorBoundary fallback={null}>
             <HeroScene
               active={active}
+              tier={tier}
               highDpr={highDpr}
               onReady={() => setReady(true)}
             />
