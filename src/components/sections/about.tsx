@@ -1,5 +1,6 @@
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Reveal } from "@/components/ui/reveal";
+import { ScrollSection } from "@/components/layout/scroll-flow";
 
 const FICHA = [
   { k: "onde", v: "Brasil" }, // TODO_EDU: cidade exata
@@ -9,7 +10,10 @@ const FICHA = [
 
 export function About() {
   return (
-    <section id="sobre" className="container-hades section-pad scroll-mt-24">
+    <ScrollSection
+      id="sobre"
+      className="container-hades section-pad scroll-mt-24"
+    >
       <SectionHeading
         eyebrow="sobre"
         title="Interessado desde o primeiro CRUD."
@@ -62,6 +66,6 @@ export function About() {
           </dl>
         </Reveal>
       </div>
-    </section>
+    </ScrollSection>
   );
 }

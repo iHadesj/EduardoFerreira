@@ -73,7 +73,7 @@ export function Footer() {
 
       <div className="container-hades border-ash text-smoke flex flex-col gap-2 border-t py-6 font-mono text-xs sm:flex-row sm:items-center sm:justify-between">
         <p>
-          © {year} Edu Ferreira — feito com Next.js, teimosia e muito café.
+          © {year} Edu Ferreira — feito com Next.js, persistência e muito café 🙏.
         </p>
         <Link
           href={siteConfig.sourceUrl}

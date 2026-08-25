@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "lenis/dist/lenis.css";
 @import "../styles/themes.css";
 @plugin "@tailwindcss/typography";
 
@@ -131,6 +132,7 @@
   html {
     -webkit-text-size-adjust: 100%;
     scrollbar-gutter: stable;
+    overscroll-behavior-y: none;
   }
 
   body {
@@ -140,6 +142,7 @@
     font-synthesis-weight: none;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    overflow-x: clip;
   }
 
   /* Themed text selection (§2.3 / §7.4) */
@@ -159,6 +162,48 @@
   .prose-measure {
     max-width: 65ch;
   }
+}
+
+/* Continuous section rhythm for the home page. The separators dissolve into
+   the ambient scroll light instead of reading as hard page breaks. */
+.scroll-flow-section {
+  position: relative;
+}
+
+.scroll-flow-section:not(#hero)::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 50%;
+  width: min(calc(100% - 2.5rem), 67rem);
+  height: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--color-ash) 72%, transparent) 18%,
+    color-mix(in oklab, var(--color-molten) 22%, var(--color-ash)) 50%,
+    color-mix(in oklab, var(--color-ash) 72%, transparent) 82%,
+    transparent
+  );
+}
+
+.scroll-flow-section:not(#hero)::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: -7rem;
+  left: 50%;
+  width: min(86vw, 54rem);
+  height: 14rem;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in oklab, var(--color-molten) 5%, transparent),
+    transparent 70%
+  );
+  pointer-events: none;
 }
 
 /* Navbar surface once scrolled (§F2) */
@@ -274,6 +319,10 @@
 /* Global reduced-motion kill-switch (§2.7) — covers CSS animations/transitions
    not already handled in JS (marquee, status ping, crossfades, scrollbar). */
 @media (prefers-reduced-motion: reduce) {
+  .scroll-flow-ambient {
+    display: none;
+  }
+
   *,
   ::before,
   ::after {

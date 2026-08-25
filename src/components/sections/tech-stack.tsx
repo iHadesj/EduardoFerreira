@@ -1,5 +1,6 @@
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Marquee } from "@/components/ui/marquee";
+import { ScrollSection } from "@/components/layout/scroll-flow";
 
 const BACKEND = [
   "Java",
@@ -34,7 +35,7 @@ function TechItem({ label }: { label: string }) {
 
 export function TechStack() {
   return (
-    <section id="stack" className="section-pad scroll-mt-24">
+    <ScrollSection id="stack" className="section-pad scroll-mt-24">
       <div className="container-hades">
         <SectionHeading
           eyebrow="ferramentas"
@@ -55,6 +56,6 @@ export function TechStack() {
           ))}
         </Marquee>
       </div>
-    </section>
+    </ScrollSection>
   );
 }

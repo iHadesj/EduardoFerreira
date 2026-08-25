@@ -1,6 +1,7 @@
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Reveal } from "@/components/ui/reveal";
 import { Badge } from "@/components/ui/badge";
+import { ScrollSection } from "@/components/layout/scroll-flow";
 
 interface TimelineItem {
   period: string;
@@ -56,14 +57,11 @@ const TIMELINE: TimelineItem[] = [
 
 export function Experience() {
   return (
-    <section
+    <ScrollSection
       id="trajetoria"
       className="container-hades section-pad scroll-mt-24"
     >
-      <SectionHeading
-        eyebrow="trajetória"
-        title="Como eu cheguei até aqui."
-      />
+      <SectionHeading eyebrow="trajetória" title="Como eu cheguei até aqui." />
 
       <ol className="border-ash relative mt-10 flex flex-col gap-10 border-l pl-8">
         {TIMELINE.map((item, index) => (
@@ -101,6 +99,6 @@ export function Experience() {
           </li>
         ))}
       </ol>
-    </section>
+    </ScrollSection>
   );
 }

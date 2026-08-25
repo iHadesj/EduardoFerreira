@@ -8,6 +8,7 @@ import { ScrollCue } from "@/components/sections/scroll-cue";
 import { GitHubIcon, LinkedInIcon } from "@/components/icons";
 import { siteConfig } from "@/lib/site-config";
 import { cn } from "@/lib/utils";
+import { ScrollSection } from "@/components/layout/scroll-flow";
 
 const socials = [
   {
@@ -33,7 +34,7 @@ const socials = [
 
 export function Hero() {
   return (
-    <section id="hero" className="relative">
+    <ScrollSection id="hero" className="relative" flowStrength={18}>
       <div className="container-hades grid min-h-dvh grid-cols-1 items-center gap-10 pt-24 pb-20 lg:grid-cols-12 lg:gap-6">
         <div className="flex flex-col gap-6 lg:col-span-7">
           <p className="text-label text-molten font-mono uppercase">
@@ -103,6 +104,6 @@ export function Hero() {
       <div className="pointer-events-none absolute inset-x-0 bottom-6 flex justify-center">
         <ScrollCue />
       </div>
-    </section>
+    </ScrollSection>
   );
 }

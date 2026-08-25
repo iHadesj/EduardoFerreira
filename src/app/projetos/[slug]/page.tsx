@@ -109,7 +109,7 @@ export default async function ProjectPage({ params }: PageProps) {
         <div className="border-ash relative mt-10 aspect-[16/9] overflow-hidden rounded-lg border">
           <Image
             src={project.cover}
-            alt={`Tela do projeto ${project.title}`}
+            alt={project.coverAlt ?? `Tela do projeto ${project.title}`}
             fill
             priority
             sizes="(min-width: 1024px) 60rem, 100vw"

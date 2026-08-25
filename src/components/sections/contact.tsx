@@ -1,10 +1,15 @@
 import { SectionHeading } from "@/components/ui/section-heading";
 import { CopyEmail } from "@/components/sections/copy-email";
 import { ContactForm } from "@/components/sections/contact-form";
+import { ScrollSection } from "@/components/layout/scroll-flow";
 
 export function Contact() {
   return (
-    <section id="contato" className="container-hades section-pad scroll-mt-24">
+    <ScrollSection
+      id="contato"
+      className="container-hades section-pad scroll-mt-24"
+      flowStrength={18}
+    >
       <SectionHeading
         eyebrow="contato"
         title="Bora trocar ideia?"
@@ -24,6 +29,6 @@ export function Contact() {
 
         <ContactForm />
       </div>
-    </section>
+    </ScrollSection>
   );
 }

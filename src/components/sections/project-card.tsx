@@ -26,7 +26,7 @@ export function ProjectCard({ project }: { project: Project }) {
         {project.cover ? (
           <Image
             src={project.cover}
-            alt={`Tela do projeto ${project.title}`}
+            alt={project.coverAlt ?? `Tela do projeto ${project.title}`}
             fill
             sizes="(min-width: 768px) 20rem, 100vw"
             className="object-cover object-top transition-transform duration-300 group-hover:scale-[1.03]"

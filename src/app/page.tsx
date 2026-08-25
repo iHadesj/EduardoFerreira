@@ -5,10 +5,11 @@ import { Projects } from "@/components/sections/projects";
 import { Experience } from "@/components/sections/experience";
 import { GithubActivity } from "@/components/sections/github-activity";
 import { Contact } from "@/components/sections/contact";
+import { ScrollFlow } from "@/components/layout/scroll-flow";
 
 export default function Home() {
   return (
-    <main id="conteudo">
+    <ScrollFlow id="conteudo">
       <Hero />
       <About />
       <TechStack />
@@ -16,6 +17,6 @@ export default function Home() {
       <Experience />
       <GithubActivity />
       <Contact />
-    </main>
+    </ScrollFlow>
   );
 }

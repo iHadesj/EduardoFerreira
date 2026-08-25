@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { Reveal } from "@/components/ui/reveal";
 
 interface SectionHeadingProps {
   /** Eyebrow label WITHOUT the `//` prefix — the component adds it as a
@@ -21,7 +22,8 @@ export function SectionHeading({
   as: Heading = "h2",
 }: SectionHeadingProps) {
   return (
-    <div
+    <Reveal
+      distance={36}
       className={cn(
         "flex flex-col gap-3",
         align === "center" && "items-center text-center",
@@ -44,6 +46,6 @@ export function SectionHeading({
           {description}
         </p>
       ) : null}
-    </div>
+    </Reveal>
   );
 }

@@ -3,10 +3,15 @@ import { Reveal } from "@/components/ui/reveal";
 import { ProjectCard } from "@/components/sections/project-card";
 import { SmoothLink } from "@/components/ui/smooth-link";
 import { projects } from "@/lib/projects";
+import { ScrollSection } from "@/components/layout/scroll-flow";
 
 export function Projects() {
   return (
-    <section id="projetos" className="container-hades section-pad scroll-mt-24">
+    <ScrollSection
+      id="projetos"
+      className="container-hades section-pad scroll-mt-24"
+      flowStrength={18}
+    >
       <SectionHeading
         eyebrow="projetos"
         title="Coisas que eu construí."
@@ -30,6 +35,6 @@ export function Projects() {
           Tem mais coisa no meu GitHub ↓
         </SmoothLink>
       </div>
-    </section>
+    </ScrollSection>
   );
 }

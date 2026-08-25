@@ -2,6 +2,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { fetchContributions, fetchRepos, type ReposPage } from "@/lib/github";
 import { GithubFeed } from "./github-feed";
 import { ContributionsHeatmap } from "./contributions-heatmap";
+import { ScrollSection } from "@/components/layout/scroll-flow";
 
 /**
  * Server component: fetches page 1 + the heatmap directly via lib/github, so the
@@ -17,7 +18,11 @@ export async function GithubActivity() {
   const contributions = await fetchContributions();
 
   return (
-    <section id="github" className="container-hades section-pad scroll-mt-24">
+    <ScrollSection
+      id="github"
+      className="container-hades section-pad scroll-mt-24"
+      flowStrength={18}
+    >
       <SectionHeading
         eyebrow="github"
         title="Meu GitHub, ao vivo."
@@ -33,6 +38,6 @@ export async function GithubActivity() {
       <div className="mt-10">
         <GithubFeed initialData={initial} />
       </div>
-    </section>
+    </ScrollSection>
   );
 }

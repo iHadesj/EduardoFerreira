@@ -15,6 +15,7 @@ const projects = defineCollection({
       problem: s.string(),
       date: s.isodate(),
       cover: s.string().optional(),
+      coverAlt: s.string().optional(),
       stack: s.array(s.string()),
       repo: s.string().url().optional(),
       demo: s.string().url().optional(),
