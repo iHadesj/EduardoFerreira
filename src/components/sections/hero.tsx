@@ -10,9 +10,25 @@ import { siteConfig } from "@/lib/site-config";
 import { cn } from "@/lib/utils";
 
 const socials = [
-  { label: "GitHub", href: siteConfig.links.github, Icon: GitHubIcon },
-  { label: "LinkedIn", href: siteConfig.links.linkedin, Icon: LinkedInIcon },
-  { label: "E-mail", href: siteConfig.links.email, Icon: Mail },
+  {
+    label: "GitHub",
+    href: siteConfig.links.github,
+    Icon: GitHubIcon,
+    external: true,
+  },
+  {
+    label: "LinkedIn",
+    href: siteConfig.links.linkedin,
+    Icon: LinkedInIcon,
+    external: true,
+  },
+  // mailto: — no new tab, no rel needed.
+  {
+    label: "E-mail",
+    href: siteConfig.links.email,
+    Icon: Mail,
+    external: false,
+  },
 ];
 
 export function Hero() {
@@ -29,15 +45,13 @@ export function Hero() {
               <ScrambleText text="Edu Ferreira" />
             </span>
             <span className="text-smoke mt-3 block max-w-[18ch] text-[length:clamp(1.5rem,3.5vw,2.5rem)] leading-[1.1]">
-              Stack{" "}
-              <span className="text-gradient-molten">completa</span>
+              Stack <span className="text-gradient-molten">completa</span>
             </span>
           </h1>
 
           <p className="prose-measure font-body text-lead text-smoke">
             Backend em Java/Spring, frontend em React e TypeScript. Atualmente
-            afiando arquitetura, testes e performance — e documentando tudo em
-            case studies.
+            afiando arquitetura, testes e performance.
           </p>
 
           <div className="flex flex-wrap items-center gap-4 pt-2">
@@ -62,14 +76,14 @@ export function Hero() {
           </div>
 
           <ul className="flex items-center gap-3 pt-2">
-            {socials.map(({ label, href, Icon }) => (
+            {socials.map(({ label, href, Icon, external }) => (
               <li key={label}>
                 <Magnetic className="inline-flex">
                   <a
                     href={href}
                     aria-label={label}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    target={external ? "_blank" : undefined}
+                    rel={external ? "noopener noreferrer" : undefined}
                     data-cursor="hover"
                     className="rounded-pill border-ash text-smoke hover:border-molten hover:text-bone inline-flex size-10 items-center justify-center border transition-colors"
                   >

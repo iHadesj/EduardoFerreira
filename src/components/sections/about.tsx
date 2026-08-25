@@ -2,9 +2,9 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { Reveal } from "@/components/ui/reveal";
 
 const FICHA = [
-  { k: "base", v: "Brasil" }, // TODO_EDU: cidade exata
-  { k: "foco", v: "Java · Spring · React · TS" },
-  { k: "testes", v: "JUnit · Vitest · Playwright" },
+  { k: "onde", v: "Brasil" }, // TODO_EDU: cidade exata
+  { k: "no dia a dia", v: "Java · Spring · React · TS" },
+  { k: "aprendendo", v: "JUnit · Vitest · Playwright" },
 ];
 
 export function About() {
@@ -12,28 +12,28 @@ export function About() {
     <section id="sobre" className="container-hades section-pad scroll-mt-24">
       <SectionHeading
         eyebrow="sobre"
-        title="Do schema ao pixel, com a mesma disciplina."
+        title="Interessado desde o primeiro CRUD."
       />
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_19rem]">
         <Reveal className="prose-measure text-smoke flex flex-col gap-4">
           <p>
-            Comecei pelo backend — Java, Spring, bancos relacionais — atraído
-            por sistemas que precisam estar{" "}
-            <span className="text-bone">certos</span>, não só bonitos: modelagem
-            de dados, camadas bem desenhadas, testes que falham antes do
-            usuário.
+            Comecei pelo back-end — Java, Spring, banco de dados — porque queria
+            entender o que acontece{" "}
+            <span className="text-bone">atrás da tela</span>. Modelar os dados,
+            separar as camadas, escrever um teste e ver ele pegar o erro antes
+            de mim: foi aí que caiu a ficha.
           </p>
           <p>
-            Hoje estendo isso ao frontend com React e TypeScript — a mesma
-            obsessão por tipos e contratos, agora na interface. Este portfolio é
-            meu case study de frontend: código aberto, CI verde e performance{" "}
-            <span className="text-bone">medida</span>, não prometida.
+            Depois fui pro front com React e TypeScript e descobri que gosto dos
+            dois lados. Este site é meu quintal de{" "}
+            <span className="text-bone">experimentos</span> — está todo no
+            GitHub, com o que deu certo e o que eu ainda quero arrumar.
           </p>
           <p>
-            Procuro um time onde engenharia importe: code review de verdade,
-            decisões documentadas e espaço para levar uma feature do banco ao
-            pixel.
+            Hoje divido o dia entre estágio e faculdade. O que eu procuro é um
+            time com paciência pra explicar e espaço pra eu colocar a mão em
+            código de verdade. Aviso desde já: eu pergunto muito.
             {/* TODO_EDU: ajustar ao objetivo atual */}
           </p>
         </Reveal>

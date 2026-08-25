@@ -17,7 +17,7 @@ const TIMELINE: TimelineItem[] = [
     role: "Estagiário de Desenvolvimento Web",
     org: "VTT",
     bullets: [
-      "Desenvolvimento web em projetos reais da empresa — o stack fullstack saindo da teoria para o dia a dia",
+      "Minha primeira experiência com projeto de verdade: prazo, gente usando e código que não é só meu — bem diferente de estudar sozinho",
       "TODO_EDU: principal entrega ou responsabilidade (com impacto/número)",
     ],
     stack: ["React", "TypeScript", "Java"],
@@ -27,8 +27,8 @@ const TIMELINE: TimelineItem[] = [
     role: "Bacharelado em Análise e Desenvolvimento de Sistemas",
     org: "Estácio",
     bullets: [
-      "Graduação cursada em paralelo ao estágio — teoria aplicada direto na prática",
-      "Base formal em engenharia de software, banco de dados e arquitetura",
+      "Faculdade e estágio ao mesmo tempo: o que vejo na aula costuma aparecer no trabalho na semana seguinte",
+      "É onde eu pego a base que não dá pra aprender só no tutorial: estruturas de dados, banco e arquitetura",
     ],
     stack: ["Estruturas de dados", "POO", "SQL"],
   },
@@ -37,8 +37,8 @@ const TIMELINE: TimelineItem[] = [
     role: "Desenvolvedor Fullstack",
     org: "projetos próprios",
     bullets: [
-      "Do back-end Java para o front: React, TypeScript e Next.js em projetos como StudyQuest e este portfolio",
-      "Banco relacional na prática: PostgreSQL e MySQL",
+      "Onde eu testo ideias sem medo de quebrar nada: React, TypeScript e Next.js em coisas como o StudyQuest e este site",
+      "Banco de dados fora do slide, aprendendo na tentativa e erro: PostgreSQL e MySQL",
     ],
     stack: ["React", "TypeScript", "Next.js", "PostgreSQL"],
   },
@@ -47,8 +47,8 @@ const TIMELINE: TimelineItem[] = [
     role: "Especialização Back-End Java",
     org: "EBAC",
     bullets: [
-      "Java como fundação: POO, JPA/Hibernate e persistência com PostgreSQL",
-      "CRUDs em camadas MVC com testes JUnit — base do case API Java + PostgreSQL",
+      "Foi aqui que o Java virou minha base: POO, JPA/Hibernate e persistência com PostgreSQL",
+      "Muito CRUD em MVC com JUnit — foi o que virou o projeto API Java + PostgreSQL ali em cima",
     ],
     stack: ["Java", "JPA/Hibernate", "PostgreSQL", "JUnit"],
   },
@@ -60,7 +60,10 @@ export function Experience() {
       id="trajetoria"
       className="container-hades section-pad scroll-mt-24"
     >
-      <SectionHeading eyebrow="trajetória" title="Trajetória" />
+      <SectionHeading
+        eyebrow="trajetória"
+        title="Como eu cheguei até aqui."
+      />
 
       <ol className="border-ash relative mt-10 flex flex-col gap-10 border-l pl-8">
         {TIMELINE.map((item, index) => (

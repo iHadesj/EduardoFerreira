@@ -1,6 +1,6 @@
 /**
  * Single source of truth for identity, links and navigation.
- * TODO_EDU markers are resolved in Fase 11 (LinkedIn, public e-mail, domain).
+ * TODO_EDU markers are resolved in Fase 11 (public e-mail, domain).
  */
 
 export type Locale = "pt" | "en";
@@ -31,13 +31,14 @@ export const siteConfig = {
     en: "Full stack, fully.",
   } satisfies Record<Locale, string>,
   description: {
-    pt: "Backend em Java/Spring, frontend em React e TypeScript. Arquitetura, testes e performance — documentados em case studies.",
-    en: "Java/Spring on the back end, React and TypeScript on the front. Architecture, testing and performance — documented in case studies.",
+    pt: "Backend em Java/Spring, frontend em React e TypeScript. Atualmente afiando arquitetura, testes e performance.",
+    en: "Java/Spring on the back end, React and TypeScript on the front. Currently sharpening architecture, testing and performance.",
   } satisfies Record<Locale, string>,
   links: {
     github: "https://github.com/iHadesj",
-    linkedin: "linkedin.com/in/eduardoalexandre-java", // TODO_EDU: handle do LinkedIn
-    email: "edualexandre2017@outlook.com", // TODO_EDU: confirmar e-mail
+    linkedin: "https://www.linkedin.com/in/eduardoalexandre-java/",
+    // `mailto:` is required — these values are used directly as anchor hrefs.
+    email: "mailto:edualexandre2017@outlook.com", // TODO_EDU: confirmar e-mail
   },
 } as const;
 

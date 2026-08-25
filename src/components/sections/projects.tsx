@@ -8,9 +8,9 @@ export function Projects() {
   return (
     <section id="projetos" className="container-hades section-pad scroll-mt-24">
       <SectionHeading
-        eyebrow="projetos em destaque"
-        title="Engenharia que se lê como narrativa."
-        description="Cada projeto é um case study: o problema, as decisões técnicas e os trade-offs — não só screenshots."
+        eyebrow="projetos"
+        title="Coisas que eu construí."
+        description="Em cada um eu conto o que queria resolver, como resolvi e o que faria diferente hoje. Nem tudo saiu perfeito, e isso também está escrito lá."
       />
 
       <div className="mt-10 flex flex-col gap-6">
@@ -27,7 +27,7 @@ export function Projects() {
           data-cursor="hover"
           className="link-underline text-smoke text-sm hover:bg-[length:100%_1px]"
         >
-          Ver arquivo completo no GitHub ↓
+          Tem mais coisa no meu GitHub ↓
         </SmoothLink>
       </div>
     </section>

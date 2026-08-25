@@ -19,9 +19,9 @@ export async function GithubActivity() {
   return (
     <section id="github" className="container-hades section-pad scroll-mt-24">
       <SectionHeading
-        eyebrow="arquivo vivo"
-        title="Arquivo vivo"
-        description="Repositórios recentes e contribuições — direto da API do GitHub, sem manutenção manual."
+        eyebrow="github"
+        title="Meu GitHub, ao vivo."
+        description="Puxado direto da API, então é o que está lá de verdade — inclusive os dias em que eu não commitei nada."
       />
 
       {contributions ? (

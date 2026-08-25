@@ -37,9 +37,9 @@ export function TechStack() {
     <section id="stack" className="section-pad scroll-mt-24">
       <div className="container-hades">
         <SectionHeading
-          eyebrow="arsenal"
-          title="Ferramentas que uso de verdade."
-          description="Sem barra de porcentagem — só o que está em produção nos meus projetos. Backend de um lado, frontend do outro."
+          eyebrow="ferramentas"
+          title="O que eu tenho usado."
+          description="Sem barrinha de porcentagem, porque ninguém sabe medir isso de verdade. É só a lista do que aparece nos meus projetos — back-end em cima, front-end embaixo."
         />
       </div>
 
