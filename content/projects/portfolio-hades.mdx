@@ -12,12 +12,12 @@ status: in-progress
 featured: true
 order: 6
 highlights:
-  - Chunk 3D isolado em 229 KB gz (orçamento < 300 KB)
+  - Chunk 3D isolado em 230 KB gz (orçamento < 300 KB)
   - three.js fora do payload inicial (lazy + gates de capacidade)
   - Construído fase a fase a partir de uma spec executável
 metrics:
   - label: Chunk 3D
-    value: 229 KB gz
+    value: 230 KB gz
   - label: Framework
     value: Next.js 16
   - label: Lighthouse
@@ -33,16 +33,17 @@ peso desaparecer.
 
 ## Decisões técnicas
 
-- **O 3D nunca é o LCP.** O hero renderiza no servidor texto + um pôster SVG de
-  obsidiana; a cena WebGL carrega depois (pós-idle, `next/dynamic` com
+- **O 3D nunca é o LCP.** O hero renderiza no servidor texto + um pôster SVG da
+  fita de Möbius; a cena WebGL carrega depois (pós-idle, `next/dynamic` com
   `ssr:false`) e faz crossfade por cima. Em mobile, reduced-motion ou GPU fraca,
   o pôster fica — e nenhum byte de three.js é baixado.
-- **Orçamento de bundle como gate, não meta.** O chunk 3D ficou em 229 KB gz
+- **Orçamento de bundle como gate, não meta.** O chunk 3D ficou em 230 KB gz
   (limite de 300). Para chegar lá, troquei o bloom de pós-processamento por um
   glow em CSS — o ganho visual não pagava os ~85 KB.
-- **Tokens de design, sem exceção.** Toda cor vem do `@theme` do Tailwind v4;
-  trocar tema (escuro → claro → "underworld") é só sobrescrever custom
-  properties.
+- **Tokens de design na interface.** A paleta estrutural vem do `@theme` do
+  Tailwind v4; a escultura procedural reaproveita os mesmos tons frios, âmbar e
+  obsidiana. Trocar tema (escuro → claro → "underworld") continua concentrado
+  nas custom properties da interface.
 - **Acessibilidade e `prefers-reduced-motion` como cidadãos de primeira
   classe**, não um checklist no fim.
 
@@ -55,7 +56,7 @@ GitHub vêm de route handlers que escondem o token e cacheiam a resposta.
 
 ## Resultados
 
-- 3D isolado e preguiçoso: 229 KB gz, zero no caminho crítico.
+- 3D isolado e preguiçoso: 230 KB gz, zero no caminho crítico.
 - Build verde a cada fase: `lint`, `typecheck` e `build` como portão.
 - **A medir (Fase 11):** relatório Lighthouse de produção e CI verde — os
   números reais entram aqui quando o deploy estiver no ar.
