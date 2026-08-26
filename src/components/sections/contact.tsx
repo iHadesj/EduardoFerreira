@@ -12,18 +12,18 @@ export function Contact() {
     >
       <SectionHeading
         eyebrow="contato"
-        title="Bora trocar ideia?"
-        description="Vaga, freela, uma dúvida ou só um oi — pode chamar. Back-end, front-end ou os dois, eu quero ouvir."
+        title="Quer entrar em contato?"
+        description="Vaga, freela, uma dúvida — pode chamar. Back-end, front-end ou os dois."
       />
 
       <div className="mt-10 flex flex-col gap-12 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex flex-col gap-3">
           <p className="text-smoke text-sm">
-            Prefere e-mail? Clica aí que já copia:
+            Prefere e-mail? Clica que já copia:
           </p>
           <CopyEmail />
           <p className="text-smoke text-sm">
-            Costumo responder em um ou dois dias.
+            Costumo responder de um a dois dias.
           </p>
         </div>
 
