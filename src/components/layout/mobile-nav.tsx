@@ -2,10 +2,166 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Menu, X } from "lucide-react";
+import { useTheme } from "next-themes";
+import { Flame, Menu, X } from "lucide-react";
 import { navItems } from "@/lib/site-config";
+import { useMounted } from "@/hooks/use-mounted";
 import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
+import { useToast } from "@/components/ui/toast";
 import { fadeUpItem, staggerContainer } from "@/lib/motion-presets";
+
+const UNDERWORLD_HOLD_MS = 1250;
+
+function MobileUnderworldGate({ onComplete }: { onComplete: () => void }) {
+  const { theme, setTheme } = useTheme();
+  const { toast } = useToast();
+  const mounted = useMounted();
+  const underworld = mounted && theme === "underworld";
+  const timerRef = useRef<number | undefined>(undefined);
+  const triggeredRef = useRef(false);
+  const [holding, setHolding] = useState(false);
+
+  useEffect(
+    () => () => {
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+    },
+    [],
+  );
+
+  function cancelHold() {
+    if (timerRef.current) window.clearTimeout(timerRef.current);
+    timerRef.current = undefined;
+    setHolding(false);
+  }
+
+  function startHold() {
+    if (timerRef.current) window.clearTimeout(timerRef.current);
+    triggeredRef.current = false;
+    setHolding(true);
+    navigator.vibrate?.(14);
+
+    timerRef.current = window.setTimeout(() => {
+      triggeredRef.current = true;
+      timerRef.current = undefined;
+      setHolding(false);
+      setTheme(underworld ? "dark" : "underworld");
+      navigator.vibrate?.([45, 45, 90]);
+      toast(
+        underworld
+          ? "A superfície te aceita de volta."
+          : "O selo se rompeu. Bem-vindo ao submundo.",
+      );
+      window.setTimeout(onComplete, 180);
+    }, UNDERWORLD_HOLD_MS);
+  }
+
+  function handleClick(event: React.MouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    if (triggeredRef.current) {
+      triggeredRef.current = false;
+      return;
+    }
+    toast(
+      underworld
+        ? "O caminho de volta exige que você mantenha o selo pressionado."
+        : "O símbolo responde à pressão. Mantenha-o pressionado.",
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.28, duration: 0.3 }}
+      className="container-hades pb-8"
+    >
+      <div className="border-ash bg-basalt/35 rounded-lg border p-3">
+        <p className="text-ember mb-2 font-mono text-[0.625rem] tracking-[0.18em] uppercase opacity-75">
+          {"// eco encontrado"}
+        </p>
+        <button
+          type="button"
+          aria-label={
+            underworld
+              ? "Mantenha pressionado para voltar à superfície"
+              : "Mantenha pressionado para entrar no submundo"
+          }
+          onPointerDown={(event) => {
+            if (event.button !== 0) return;
+            event.currentTarget.setPointerCapture(event.pointerId);
+            startHold();
+          }}
+          onPointerUp={cancelHold}
+          onPointerCancel={cancelHold}
+          onLostPointerCapture={cancelHold}
+          onKeyDown={(event) => {
+            if (event.repeat || !["Enter", " "].includes(event.key)) return;
+            event.preventDefault();
+            startHold();
+          }}
+          onKeyUp={(event) => {
+            if (!["Enter", " "].includes(event.key)) return;
+            event.preventDefault();
+            cancelHold();
+          }}
+          onContextMenu={(event) => event.preventDefault()}
+          onClick={handleClick}
+          className="text-smoke hover:text-bone flex w-full touch-none items-center gap-3 text-left select-none"
+        >
+          <span className="relative grid size-11 shrink-0 place-items-center">
+            <svg
+              aria-hidden
+              viewBox="0 0 44 44"
+              className="absolute inset-0 size-11 -rotate-90"
+            >
+              <circle
+                cx="22"
+                cy="22"
+                r="19"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1"
+                opacity="0.2"
+              />
+              {holding ? (
+                <motion.circle
+                  cx="22"
+                  cy="22"
+                  r="19"
+                  fill="none"
+                  stroke="var(--color-ember)"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0, opacity: 0.5 }}
+                  animate={{ pathLength: 1, opacity: 1 }}
+                  transition={{
+                    duration: UNDERWORLD_HOLD_MS / 1000,
+                    ease: "linear",
+                  }}
+                />
+              ) : null}
+            </svg>
+            <Flame
+              size={18}
+              strokeWidth={1.4}
+              className={holding || underworld ? "text-ember" : "text-smoke"}
+            />
+          </span>
+          <span className="flex flex-col gap-0.5">
+            <span className="text-bone font-mono text-xs tracking-wide uppercase">
+              {underworld
+                ? "Retornar à superfície"
+                : "Há algo sob a superfície"}
+            </span>
+            <span className="font-mono text-[0.6875rem] opacity-70">
+              mantenha pressionado
+            </span>
+          </span>
+        </button>
+      </div>
+    </motion.div>
+  );
+}
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
@@ -115,6 +271,7 @@ export function MobileNav() {
                 </motion.li>
               ))}
             </motion.ul>
+            <MobileUnderworldGate onComplete={() => setOpen(false)} />
           </motion.div>
         ) : null}
       </AnimatePresence>

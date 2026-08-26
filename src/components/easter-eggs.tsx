@@ -10,7 +10,7 @@ const TRIDENT = `
       Ψ
    ╲  │  ╱
     ╲ │ ╱
-      │        H A D E S
+      │       I H A D E S J (meu nick)
       │
    ───┴───
 `;

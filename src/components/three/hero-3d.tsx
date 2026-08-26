@@ -2,9 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import { useTheme } from "next-themes";
 import { HeroPoster } from "./hero-poster";
 import type { SceneTier } from "./hero-scene";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { useMounted } from "@/hooks/use-mounted";
 import { useReducedMotionSafe } from "@/hooks/use-reduced-motion-safe";
 import { cn } from "@/lib/utils";
 
@@ -68,6 +70,9 @@ function evaluateGates(): Gates {
  */
 export function Hero3D({ className }: { className?: string }) {
   const reduced = useReducedMotionSafe();
+  const { theme } = useTheme();
+  const themeMounted = useMounted();
+  const underworld = themeMounted && theme === "underworld";
   const containerRef = useRef<HTMLDivElement>(null);
   const [enabled, setEnabled] = useState(false);
   const [tier, setTier] = useState<SceneTier>("full");
@@ -141,13 +146,14 @@ export function Hero3D({ className }: { className?: string }) {
       {/* Persistent ambient glow (compensates for dropped postprocessing bloom). */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 -inset-y-1/4"
+        className="pointer-events-none absolute -inset-1/4"
         style={{
           background:
-            "radial-gradient(circle at 50% 46%, color-mix(in oklab, var(--color-molten) 20%, transparent), transparent 68%)",
+            "radial-gradient(circle at 50% 46%, color-mix(in oklab, var(--color-molten) 18%, transparent) 0%, color-mix(in oklab, var(--color-molten) 6%, transparent) 34%, transparent 60%)",
         }}
       />
       <HeroPoster
+        underworld={underworld}
         className={cn(
           "absolute inset-0 transition-opacity duration-500",
           showScene && ready ? "opacity-0" : "opacity-100",
@@ -165,6 +171,7 @@ export function Hero3D({ className }: { className?: string }) {
               active={active}
               tier={tier}
               highDpr={highDpr}
+              underworld={underworld}
               onReady={() => setReady(true)}
             />
           </ErrorBoundary>

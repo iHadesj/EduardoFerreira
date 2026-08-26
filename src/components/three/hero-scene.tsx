@@ -19,10 +19,17 @@ interface HeroSceneProps {
   tier: SceneTier;
   /** High-density screens receive smoother geometry until performance declines. */
   highDpr: boolean;
+  underworld: boolean;
   onReady?: () => void;
 }
 
-export function HeroScene({ active, tier, highDpr, onReady }: HeroSceneProps) {
+export function HeroScene({
+  active,
+  tier,
+  highDpr,
+  underworld,
+  onReady,
+}: HeroSceneProps) {
   const [degrade, setDegrade] = useState(0);
   const frozen = degrade >= 2;
   const highDetail = tier === "full" && highDpr && degrade === 0;
@@ -47,6 +54,7 @@ export function HeroScene({ active, tier, highDpr, onReady }: HeroSceneProps) {
           frozen={frozen}
           highDetail={highDetail}
           touch={tier === "lite"}
+          underworld={underworld}
         />
       </PerformanceMonitor>
     </Canvas>

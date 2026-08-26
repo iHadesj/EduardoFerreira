@@ -10,6 +10,7 @@ const VERTEX_SHADER = /* glsl */ `
   uniform vec2 uPointer;
   uniform float uPulse;
   uniform float uTime;
+  uniform float uUnderworld;
 
   varying float vDeformation;
   varying vec2 vLoop;
@@ -23,20 +24,91 @@ const VERTEX_SHADER = /* glsl */ `
     float pointerDistance = distance(screenPosition, uPointer);
     float proximity = smoothstep(0.72, 0.05, pointerDistance) * uActivity;
 
-    float travelingWave = sin(uv.x * 18.8496 - uTime * 2.4);
-    float crossWave = cos(uv.x * 31.4159 + uTime * 1.45) * cos(uv.y * 12.5664);
-    float breath = sin(uv.x * 6.2832 - uTime * 1.35) * 0.022;
-    float nervousTwitch = sin(uv.x * 43.9823 + uTime * 2.8) * 0.006;
-    float idleFlow = travelingWave * 0.026 + crossWave * 0.013 + breath + nervousTwitch;
-    float cursorFlow = proximity * (travelingWave * 0.11 + crossWave * 0.035);
-    float pulseWave = sin(uv.x * 37.6991 - uTime * 7.0) * uPulse * 0.06;
+    float loopPhase = uv.x * 6.2832;
+    float crossSectionPhase = uv.y * 6.2832 + uv.x * 3.1416;
+    float surfaceBreath = sin(uTime * 1.38);
+    float predatorBreath = sin(uTime * 2.72 + sin(uTime * 0.74) * 0.58);
+    float breathingCycle = mix(surfaceBreath, predatorBreath, uUnderworld);
+    float surfaceUndertow = sin(uTime * 0.57 + 1.4);
+    float predatorUndertow = sin(uTime * 1.31 + 0.8);
+    float breathingUndertow = mix(
+      surfaceUndertow,
+      predatorUndertow,
+      uUnderworld
+    );
+    float bodyBreath =
+      (
+        breathingCycle * mix(0.027, 0.048, uUnderworld) +
+        breathingUndertow * mix(0.011, 0.018, uUnderworld)
+      ) *
+      (0.78 + cos(loopPhase * 2.0 - 0.35) * 0.22);
+
+    float travelingWave = sin(loopPhase * 3.0 - uTime * 2.4);
+    float crossWave =
+      cos(loopPhase * 5.0 + uTime * 1.45) * cos(crossSectionPhase * 2.0);
+    float contraction =
+      pow(sin(loopPhase * 2.0 - uTime * 1.62) * 0.5 + 0.5, 3.0) *
+      (0.026 + cos(crossSectionPhase) * 0.01);
+    float predatoryContraction =
+      pow(sin(loopPhase * 3.0 - uTime * 4.35) * 0.5 + 0.5, 5.0) *
+      (0.057 + cos(crossSectionPhase * 2.0) * 0.016) *
+      uUnderworld;
+    float crawlingRipple = sin(
+      loopPhase * 4.0 -
+      uTime * 2.15 +
+      sin(loopPhase - uTime * 0.42) * 0.82
+    ) * mix(0.016, 0.029, uUnderworld);
+    float violentRipple =
+      sin(
+        loopPhase * 7.0 -
+        uTime * 5.4 +
+        sin(loopPhase * 2.0 + uTime * 1.7) * 1.15
+      ) *
+      0.022 *
+      uUnderworld;
+    float nervousTwitch =
+      sin(loopPhase * 7.0 + uTime * 2.8) *
+      mix(0.006, 0.017, uUnderworld);
+    float idleFlow =
+      travelingWave * 0.024 +
+      crossWave * 0.012 +
+      bodyBreath +
+      contraction +
+      predatoryContraction +
+      crawlingRipple +
+      violentRipple +
+      nervousTwitch;
+    float cursorFlow =
+      proximity *
+      (travelingWave * 0.11 + crossWave * 0.035) *
+      mix(1.0, 1.45, uUnderworld);
+    float pulseWave =
+      sin(loopPhase * 6.0 - uTime * 7.0) *
+      uPulse *
+      mix(0.06, 0.105, uUnderworld);
     float displacement = idleFlow + cursorFlow + pulseWave;
 
     vec3 transformed = position + normal * displacement;
     vec2 radialDirection = normalize(position.xy);
-    float livingStretch = sin(uv.x * 12.5664 + uTime * 1.65) * 0.018;
-    transformed.xy += radialDirection * (livingStretch + proximity * 0.045);
-    transformed.z += proximity * cos(uv.y * 12.5664) * 0.048;
+    float livingStretch =
+      sin(loopPhase * 2.0 + uTime * 1.65) * 0.025 +
+      sin(loopPhase * 5.0 - uTime * 0.92) * 0.009;
+    transformed.xy += radialDirection * (
+      livingStretch +
+      bodyBreath * 0.48 +
+      proximity * 0.05
+    );
+    transformed.z *= 1.0 + breathingCycle * 0.075;
+    transformed.z +=
+      sin(loopPhase * 2.0 - uTime * 1.08) * 0.018 +
+      sin(
+        loopPhase * 3.0 +
+        uTime * 3.7 +
+        sin(loopPhase * 5.0 - uTime * 1.4)
+      ) *
+      0.034 *
+      uUnderworld +
+      proximity * cos(crossSectionPhase * 2.0) * 0.048;
     vec4 worldPosition = modelMatrix * vec4(transformed, 1.0);
 
     vDeformation = proximity + abs(idleFlow) * 8.0 + uPulse * 0.35;
@@ -51,6 +123,7 @@ const VERTEX_SHADER = /* glsl */ `
 const FRAGMENT_SHADER = /* glsl */ `
   uniform float uActivity;
   uniform float uTime;
+  uniform float uUnderworld;
 
   varying float vDeformation;
   varying vec2 vLoop;
@@ -66,27 +139,56 @@ const FRAGMENT_SHADER = /* glsl */ `
     float fresnel = pow(1.0 - facing, 2.15);
     float edgeDistance = abs(cos(vUv.y * 6.2832));
     float goldEdge = smoothstep(0.91, 0.99, edgeDistance);
+    float surfaceBreathLight = sin(uTime * 1.38) * 0.5 + 0.5;
+    float predatorBreathLight =
+      sin(uTime * 3.05 + sin(uTime * 0.9) * 0.7) * 0.5 + 0.5;
+    float breathLight = mix(
+      surfaceBreathLight,
+      predatorBreathLight,
+      uUnderworld
+    );
 
     float loopAngle = atan(vLoop.y, vLoop.x);
-    float liquidBand = sin(
+    float surfaceBand = sin(
       loopAngle * 2.0 +
       cos(vUv.y * 12.5664) * 1.2 -
       uTime * 1.05
     ) * 0.5 + 0.5;
+    float predatorBand = sin(
+      loopAngle * 3.0 +
+      cos(vUv.y * 18.8496) * 1.45 -
+      uTime * 3.15 +
+      sin(loopAngle * 5.0 + uTime * 1.7) * 0.72
+    ) * 0.5 + 0.5;
+    float liquidBand = mix(surfaceBand, predatorBand, uUnderworld);
     liquidBand = smoothstep(0.42, 0.95, liquidBand);
 
-    vec2 glintDirection = vec2(cos(uTime * 0.75), sin(uTime * 0.75));
+    vec2 glintDirection = mix(
+      vec2(cos(uTime * 0.75), sin(uTime * 0.75)),
+      vec2(cos(uTime * 1.85), sin(uTime * 1.85)),
+      uUnderworld
+    );
     float glintAlignment = dot(normalize(vLoop), glintDirection);
     float travelingGlint = smoothstep(0.64, 1.0, glintAlignment);
 
-    float veinField = abs(sin(
+    float surfaceVein = abs(sin(
       loopAngle * 5.0 -
       uTime * 1.8 +
       sin(loopAngle * 2.0 + uTime * 1.1) * 1.35 +
       cos(vUv.y * 12.5664) * 1.8
     ));
+    float predatorVein = abs(sin(
+      loopAngle * 8.0 -
+      uTime * 5.4 +
+      sin(loopAngle * 3.0 + uTime * 2.2) * 1.7 +
+      cos(vUv.y * 18.8496) * 2.15
+    ));
+    float veinField = mix(surfaceVein, predatorVein, uUnderworld);
     float livingVein = smoothstep(0.91, 0.985, veinField);
-    float veinPulse = sin(uTime * 2.4 - loopAngle * 3.0) * 0.5 + 0.5;
+    float veinPulse =
+      sin(uTime * mix(2.4, 5.8, uUnderworld) - loopAngle * 3.0) *
+      0.5 +
+      0.5;
 
     vec3 sweepDirection = normalize(vec3(
       sin(uTime * 0.72),
@@ -98,24 +200,57 @@ const FRAGMENT_SHADER = /* glsl */ `
       0.0
     ), 18.0);
 
-    vec3 obsidian = vec3(0.006, 0.005, 0.009);
-    vec3 graphite = vec3(0.055, 0.065, 0.075);
-    vec3 coldReflection = vec3(0.13, 0.34, 0.38);
-    vec3 molten = vec3(0.91, 0.54, 0.18);
-    vec3 brightGold = vec3(1.0, 0.76, 0.34);
+    vec3 obsidian = mix(
+      vec3(0.006, 0.005, 0.009),
+      vec3(0.0015, 0.0002, 0.0005),
+      uUnderworld
+    );
+    vec3 graphite = mix(
+      vec3(0.055, 0.065, 0.075),
+      vec3(0.052, 0.0025, 0.007),
+      uUnderworld
+    );
+    vec3 coldReflection = mix(
+      vec3(0.13, 0.34, 0.38),
+      vec3(0.38, 0.006, 0.016),
+      uUnderworld
+    );
+    vec3 molten = mix(
+      vec3(0.91, 0.54, 0.18),
+      vec3(0.79, 0.018, 0.009),
+      uUnderworld
+    );
+    vec3 brightGold = mix(
+      vec3(1.0, 0.76, 0.34),
+      vec3(1.0, 0.075, 0.022),
+      uUnderworld
+    );
 
     vec3 color = mix(obsidian, graphite, fresnel * 0.8 + liquidBand * 0.16);
     color += coldReflection * fresnel * (0.34 + liquidBand * 0.2);
-    color += molten * liquidBand * fresnel * 0.2;
+    color += molten * liquidBand * fresnel * (0.17 + breathLight * 0.07);
     color += mix(coldReflection, molten, edgeDistance) * liquidBand * 0.075;
     color += mix(coldReflection, brightGold, travelingGlint) * movingSpecular * 0.62;
     color += mix(coldReflection, brightGold, veinPulse) * livingVein * (0.14 + uActivity * 0.12);
     color += coldReflection * liquidBand * (0.035 + veinPulse * 0.04);
     color += graphite * vDeformation * 0.32;
+    color +=
+      brightGold *
+      livingVein *
+      uUnderworld *
+      (0.13 + predatorBreathLight * 0.18);
 
     vec3 edgeColor = mix(molten, brightGold, travelingGlint);
-    color = mix(color, edgeColor, goldEdge * (0.72 + travelingGlint * 0.28));
-    color += brightGold * goldEdge * travelingGlint * (0.45 + uActivity * 0.22);
+    color = mix(
+      color,
+      edgeColor,
+      goldEdge * (0.68 + travelingGlint * 0.26 + breathLight * 0.08)
+    );
+    color +=
+      brightGold *
+      goldEdge *
+      travelingGlint *
+      (0.4 + breathLight * 0.1 + uActivity * 0.22);
 
     gl_FragColor = vec4(color, 1.0);
   }
@@ -200,12 +335,15 @@ interface LiquidObsidianMobiusProps {
   highDetail?: boolean;
   /** Touch devices use drag inertia instead of pointer parallax. */
   touch?: boolean;
+  /** Turns the sculpture into its faster black-and-red underworld form. */
+  underworld?: boolean;
 }
 
 export function LiquidObsidianMobius({
   frozen = false,
   highDetail = false,
   touch = false,
+  underworld = false,
 }: LiquidObsidianMobiusProps) {
   const groupRef = useRef<THREE.Group>(null);
   const sculptureRef = useRef<THREE.Group>(null);
@@ -230,6 +368,7 @@ export function LiquidObsidianMobius({
       uPointer: { value: new THREE.Vector2(3, 3) },
       uPulse: { value: 0 },
       uTime: { value: 0 },
+      uUnderworld: { value: 0 },
     }),
     [],
   );
@@ -242,9 +381,13 @@ export function LiquidObsidianMobius({
 
     const dragState = drag.current;
     const response = Math.min(1, delta * 7);
+    material.uniforms.uUnderworld!.value +=
+      ((underworld ? 1 : 0) - material.uniforms.uUnderworld!.value) *
+      Math.min(1, delta * 2.8);
+    const aggression = material.uniforms.uUnderworld!.value as number;
 
     if (!frozen) {
-      elapsed.current += delta;
+      elapsed.current += delta * (1 + aggression * 0.42);
 
       if (!dragState.active) {
         offset.current.x = clamp(
@@ -271,11 +414,44 @@ export function LiquidObsidianMobius({
       group.position.x += (targetPositionX - group.position.x) * 0.035;
       group.position.y += (targetPositionY - group.position.y) * 0.035;
 
-      sculpture.rotation.z += delta * (0.34 + pulse.current * 0.18);
+      const breath = Math.sin(elapsed.current * 1.38);
+      const undertow = Math.sin(elapsed.current * 0.57 + 1.4);
+      const predatorPulse = Math.sin(
+        elapsed.current * 3.85 + Math.sin(elapsed.current * 1.13) * 0.9,
+      );
+      const livingScale =
+        breath * 0.038 + undertow * 0.013 + predatorPulse * 0.032 * aggression;
+
+      sculpture.rotation.z +=
+        delta *
+        (0.31 +
+          Math.sin(elapsed.current * 0.39) * 0.055 +
+          aggression * (0.2 + Math.sin(elapsed.current * 2.45) * 0.09) +
+          pulse.current * (0.2 + aggression * 0.16));
       sculpture.rotation.x =
-        Math.sin(elapsed.current * 0.86) * 0.18 +
-        Math.sin(elapsed.current * 1.9) * 0.035;
-      sculpture.rotation.y = Math.cos(elapsed.current * 0.68) * 0.15;
+        Math.sin(elapsed.current * 0.81) * 0.22 +
+        Math.sin(elapsed.current * 1.93) * 0.052 +
+        Math.sin(elapsed.current * 3.42) * 0.095 * aggression;
+      sculpture.rotation.y =
+        Math.cos(elapsed.current * 0.66) * 0.19 +
+        Math.sin(elapsed.current * 1.47) * 0.038 +
+        Math.cos(elapsed.current * 4.18) * 0.072 * aggression;
+      sculpture.position.x =
+        Math.sin(elapsed.current * 0.72) * 0.045 +
+        Math.sin(elapsed.current * 1.71) * 0.012 +
+        Math.sin(elapsed.current * 3.6) * 0.026 * aggression;
+      sculpture.position.y =
+        Math.cos(elapsed.current * 0.59) * 0.034 +
+        Math.sin(elapsed.current * 1.34) * 0.014 +
+        Math.cos(elapsed.current * 3.15) * 0.021 * aggression;
+      sculpture.position.z =
+        Math.sin(elapsed.current * 0.91) * 0.026 +
+        Math.sin(elapsed.current * 4.7) * 0.018 * aggression;
+      sculpture.scale.set(
+        1 + livingScale * (0.72 + aggression * 0.25),
+        1 + livingScale * (1.12 + aggression * 0.42),
+        1 - livingScale * (0.46 + aggression * 0.28),
+      );
     }
 
     pulse.current = Math.max(0, pulse.current - delta * 0.95);
@@ -345,9 +521,9 @@ export function LiquidObsidianMobius({
 
   return (
     <Float
-      speed={frozen ? 0 : 1.15}
-      rotationIntensity={frozen ? 0 : 0.09}
-      floatIntensity={frozen ? 0 : 0.25}
+      speed={frozen ? 0 : underworld ? 2.15 : 1.15}
+      rotationIntensity={frozen ? 0 : underworld ? 0.16 : 0.09}
+      floatIntensity={frozen ? 0 : underworld ? 0.36 : 0.25}
     >
       <group
         ref={groupRef}

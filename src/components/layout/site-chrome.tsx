@@ -7,6 +7,7 @@ import { SkipLink } from "@/components/layout/skip-link";
 import { CustomCursor } from "@/components/ui/custom-cursor";
 import { ToastProvider } from "@/components/ui/toast";
 import { EasterEggs } from "@/components/easter-eggs";
+import { UnderworldParticles } from "@/components/underworld-particles";
 
 /**
  * The persistent shell around every page: toasts, skip link, navbar (+ mobile
@@ -21,6 +22,7 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
         <Navbar />
         {children}
         <Footer />
+        <UnderworldParticles />
         <CustomCursor />
         <div aria-hidden className="grain-overlay" />
         <EasterEggs />

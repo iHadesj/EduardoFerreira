@@ -1,7 +1,18 @@
 import { cn } from "@/lib/utils";
 
 /** LCP-safe SVG counterpart to the interactive liquid-obsidian Möbius strip. */
-export function HeroPoster({ className }: { className?: string }) {
+export function HeroPoster({
+  className,
+  underworld = false,
+}: {
+  className?: string;
+  underworld?: boolean;
+}) {
+  const accent = underworld ? "#ed2018" : "#e8a33d";
+  const accentBright = underworld ? "#ff5a3d" : "#f3c66a";
+  const accentDeep = underworld ? "#6f0308" : "#9f5b20";
+  const reflection = underworld ? "#38070a" : "#245d66";
+
   return (
     <div
       aria-hidden
@@ -14,8 +25,8 @@ export function HeroPoster({ className }: { className?: string }) {
       >
         <defs>
           <radialGradient id="hp-ambient" cx="50%" cy="48%" r="52%">
-            <stop offset="0%" stopColor="#e8a33d" stopOpacity="0.105" />
-            <stop offset="50%" stopColor="#245d66" stopOpacity="0.045" />
+            <stop offset="0%" stopColor={accent} stopOpacity="0.105" />
+            <stop offset="50%" stopColor={reflection} stopOpacity="0.045" />
             <stop offset="100%" stopColor="#07060a" stopOpacity="0" />
           </radialGradient>
           <linearGradient
@@ -25,23 +36,27 @@ export function HeroPoster({ className }: { className?: string }) {
             x2="0.9"
             y2="0.94"
           >
-            <stop offset="0%" stopColor="#52666c" />
-            <stop offset="18%" stopColor="#101318" />
+            <stop offset="0%" stopColor={underworld ? "#3b080b" : "#52666c"} />
+            <stop offset="18%" stopColor={underworld ? "#110306" : "#101318"} />
             <stop offset="47%" stopColor="#030306" />
-            <stop offset="73%" stopColor="#152c31" />
+            <stop offset="73%" stopColor={underworld ? "#260407" : "#152c31"} />
             <stop offset="100%" stopColor="#050407" />
           </linearGradient>
           <linearGradient id="hp-twist" x1="0.08" y1="0.18" x2="0.92" y2="0.84">
             <stop offset="0%" stopColor="#050407" />
-            <stop offset="45%" stopColor="#1d282b" />
-            <stop offset="67%" stopColor="#663a16" />
+            <stop offset="45%" stopColor={underworld ? "#1f0508" : "#1d282b"} />
+            <stop offset="67%" stopColor={underworld ? "#72070b" : "#663a16"} />
             <stop offset="100%" stopColor="#09070a" />
           </linearGradient>
           <linearGradient id="hp-gold" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#f3c66a" stopOpacity="0.86" />
-            <stop offset="42%" stopColor="#9f5b20" stopOpacity="0.3" />
-            <stop offset="72%" stopColor="#e8a33d" stopOpacity="0.74" />
-            <stop offset="100%" stopColor="#fff0ae" stopOpacity="0.9" />
+            <stop offset="0%" stopColor={accentBright} stopOpacity="0.86" />
+            <stop offset="42%" stopColor={accentDeep} stopOpacity="0.3" />
+            <stop offset="72%" stopColor={accent} stopOpacity="0.74" />
+            <stop
+              offset="100%"
+              stopColor={underworld ? "#ff9a7b" : "#fff0ae"}
+              stopOpacity="0.9"
+            />
           </linearGradient>
           <filter id="hp-glow" x="-30%" y="-30%" width="160%" height="160%">
             <feGaussianBlur stdDeviation="8" />
@@ -78,7 +93,7 @@ export function HeroPoster({ className }: { className?: string }) {
         <path
           d="M87 137 C120 83 202 76 261 112"
           fill="none"
-          stroke="#d9f5fa"
+          stroke={underworld ? "#ff3728" : "#d9f5fa"}
           strokeWidth="4"
           strokeLinecap="round"
           strokeOpacity="0.08"
@@ -87,7 +102,7 @@ export function HeroPoster({ className }: { className?: string }) {
         <path
           d="M98 142 C137 111 187 112 234 138"
           fill="none"
-          stroke="#f5c96d"
+          stroke={underworld ? "#ff6045" : "#f5c96d"}
           strokeWidth="1.4"
           strokeLinecap="round"
           strokeOpacity="0.56"
@@ -95,7 +110,7 @@ export function HeroPoster({ className }: { className?: string }) {
         <path
           d="M169 207 C188 222 211 230 232 222"
           fill="none"
-          stroke="#e8a33d"
+          stroke={accent}
           strokeWidth="1.35"
           strokeLinecap="round"
           strokeOpacity="0.5"
