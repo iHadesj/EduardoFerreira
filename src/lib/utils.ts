@@ -6,6 +6,21 @@ export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * Trigger a file download from a client event handler.
+ * `window.open` would render the PDF in a tab instead of saving it, so we
+ * click a throwaway anchor carrying the `download` attribute.
+ */
+export function downloadFile(url: string, fileName: string): void {
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = fileName;
+  anchor.rel = "noopener";
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+}
+
 /** Format an ISO date for display, locale-aware. */
 export function formatDate(
   date: string | Date,

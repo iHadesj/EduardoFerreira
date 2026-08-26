@@ -72,7 +72,9 @@ export function Hero() {
             </Magnetic>
             <a
               href={siteConfig.cvUrl}
-              download
+              download={siteConfig.cvFileName}
+              type="application/pdf"
+              aria-label="Baixar currículo em PDF"
               data-cursor="hover"
               className={cn(
                 buttonVariants({ variant: "ghost", size: "lg" }),

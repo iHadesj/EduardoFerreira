@@ -18,8 +18,10 @@ export const siteConfig = {
   email: "edualexandre2017@outlook.com",
   // Canonical production URL — placeholder domain until Fase 11.
   url: "https://edu-ferreira-zeta.vercel.app",
-  // CV PDF lives in /public — file to be added in Fase 11 (TODO_EDU).
-  cvUrl: "/cv-edu-ferreira.pdf",
+  // CV PDF served straight from /public.
+  cvUrl: "/Curriculo-Eduardo-Ferreira-2026.pdf",
+  // Name the browser saves the download as.
+  cvFileName: "Curriculo-Eduardo-Ferreira-2026.pdf",
   // Repository (for the footer "view source" link). TODO_EDU: confirm name.
   sourceUrl: "https://github.com/iHadesj/EduardoFerreira",
   role: {

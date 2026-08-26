@@ -5,7 +5,7 @@ import { ScrollSection } from "@/components/layout/scroll-flow";
 const FICHA = [
   { k: "onde", v: "SP-ZS" }, // TODO_EDU: cidade exata
   { k: "no dia a dia", v: "Java · Spring · React · TS" },
-  { k: "aprendendo", v: "JUnit · Vitest · Playwright" },
+  { k: "aprendendo", v: "JUnit · Machine Learning · Zustand" },
 ];
 
 export function About() {

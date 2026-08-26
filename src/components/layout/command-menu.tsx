@@ -12,6 +12,7 @@ import { useTheme } from "next-themes";
 import { ArrowUpRight, Copy, Download, Flame, Palette } from "lucide-react";
 import { navItems, siteConfig } from "@/lib/site-config";
 import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
+import { downloadFile } from "@/lib/utils";
 import { useToast } from "@/components/ui/toast";
 
 interface CommandMenuContextValue {
@@ -113,7 +114,12 @@ function CommandMenu() {
           </Command.Item>
           <Command.Item
             value="baixar cv curriculo"
-            onSelect={() => run(() => window.open(siteConfig.cvUrl, "_blank"))}
+            onSelect={() =>
+              run(() => {
+                downloadFile(siteConfig.cvUrl, siteConfig.cvFileName);
+                toast("Baixando currículo…");
+              })
+            }
           >
             <Download size={16} strokeWidth={1.5} /> Baixar CV
           </Command.Item>

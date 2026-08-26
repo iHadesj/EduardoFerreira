@@ -11,6 +11,7 @@ import { Reveal } from "@/components/ui/reveal";
 import { ScrambleText } from "@/components/ui/scramble-text";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { siteConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
   title: "Design system — /dev/ui",
@@ -74,7 +75,11 @@ export default function DevUiPage() {
         <Button variant="primary" size="lg">
           Ver projetos
         </Button>
-        <Button variant="ghost">Baixar CV</Button>
+        <Button variant="ghost" asChild>
+          <a href={siteConfig.cvUrl} download={siteConfig.cvFileName}>
+            Baixar CV
+          </a>
+        </Button>
         <Button variant="link">Case study</Button>
         <Button variant="primary" disabled>
           Disabled
@@ -191,8 +196,10 @@ export default function DevUiPage() {
       </div>
 
       <Row label="Button primário com gradiente assinatura + texto gradiente">
-        <Button variant="primary" size="lg">
-          <Download size={18} strokeWidth={1.5} /> Baixar CV
+        <Button variant="primary" size="lg" asChild>
+          <a href={siteConfig.cvUrl} download={siteConfig.cvFileName}>
+            <Download size={18} strokeWidth={1.5} /> Baixar CV
+          </a>
         </Button>
         <span className="text-gradient-molten font-display text-h3">
           ouro fundido
