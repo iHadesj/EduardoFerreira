@@ -26,6 +26,8 @@ interface Gates {
 }
 
 const BLOCKED: Gates = { ok: false, tier: "lite", highDpr: false };
+const ECONOMY_GPU_PATTERN =
+  /adreno(?:\s+\(tm\))?\s+(?:[45]\d{2}|6(?:0\d|1\d|20))|mali-(?:t\d+|g(?:31|51|52|57|68))|powervr/i;
 
 /**
  * Capability gates. Phones are no longer excluded outright — they clear a
@@ -45,25 +47,47 @@ function evaluateGates(): Gates {
   if (/(^|-)2g$/.test(nav.connection?.effectiveType ?? "")) return BLOCKED;
 
   let webgl2 = false;
+  let renderer = "";
   try {
-    webgl2 = document.createElement("canvas").getContext("webgl2") !== null;
+    const context = document.createElement("canvas").getContext("webgl2");
+    webgl2 = context !== null;
+    if (context) {
+      const debugInfo = context.getExtension("WEBGL_debug_renderer_info");
+      renderer = String(
+        context.getParameter(
+          debugInfo?.UNMASKED_RENDERER_WEBGL ?? context.RENDERER,
+        ),
+      );
+    }
   } catch {
     webgl2 = false;
   }
   if (!webgl2) return BLOCKED;
 
-  const tier: SceneTier =
-    window.matchMedia("(pointer: fine)").matches || window.innerWidth >= 1024
-      ? "full"
-      : "lite";
-
-  // Desktop keeps the ≥4GB bar; the lite tier is cheap enough to clear 3GB.
-  const memFloor = tier === "full" ? 4 : 3;
+  const finePointer = window.matchMedia("(pointer: fine)").matches;
+  const phone = !finePointer && window.innerWidth < 1024;
   const mem = nav.deviceMemory;
-  if (mem !== undefined && mem < memFloor) return BLOCKED;
-  if (tier === "lite" && navigator.hardwareConcurrency < 4) return BLOCKED;
+  const cores = navigator.hardwareConcurrency || 4;
+  const dpr = window.devicePixelRatio || 1;
+  // Browsers do not expose benchmark scores. This combines the signals that
+  // correlate best with sub-500k AnTuTu Androids, including common low/mid GPUs.
+  const economyPhone =
+    phone &&
+    (ECONOMY_GPU_PATTERN.test(renderer) ||
+      (mem !== undefined && mem <= 4) ||
+      cores <= 4 ||
+      (/Android/i.test(navigator.userAgent) &&
+        dpr >= 2.5 &&
+        (mem ?? 4) <= 6 &&
+        cores <= 8));
+  const tier: SceneTier =
+    finePointer || window.innerWidth >= 1024
+      ? "full"
+      : economyPhone
+        ? "economy"
+        : "lite";
 
-  return { ok: true, tier, highDpr: (window.devicePixelRatio || 1) >= 1.5 };
+  return { ok: true, tier, highDpr: tier === "full" && dpr >= 1.5 };
 }
 
 /**
@@ -96,6 +120,10 @@ export function Hero3D({ className }: { className?: string }) {
     if (reduced) return;
     const gates = evaluateGates();
     if (!gates.ok) return;
+    const capabilityFrame = requestAnimationFrame(() => {
+      setTier(gates.tier);
+      setHighDpr(gates.highDpr);
+    });
 
     const win = window as Window & {
       requestIdleCallback?: (
@@ -105,8 +133,10 @@ export function Hero3D({ className }: { className?: string }) {
       cancelIdleCallback?: (handle: number) => void;
     };
     // Phones get a longer leash so the shader compile never lands on LCP.
-    const timeout = gates.tier === "lite" ? 3000 : 2000;
-    const fallbackDelay = gates.tier === "lite" ? 1400 : 800;
+    const timeout =
+      gates.tier === "economy" ? 3600 : gates.tier === "lite" ? 3000 : 2000;
+    const fallbackDelay =
+      gates.tier === "economy" ? 1800 : gates.tier === "lite" ? 1400 : 800;
     let idleHandle = 0;
     let fallbackHandle = 0;
     let scrollSettleHandle = 0;
@@ -127,8 +157,6 @@ export function Hero3D({ className }: { className?: string }) {
       if (started) return;
       started = true;
       window.removeEventListener("scroll", handleEarlyScroll);
-      setTier(gates.tier);
-      setHighDpr(gates.highDpr);
       setEnabled(true);
     };
 
@@ -151,6 +179,7 @@ export function Hero3D({ className }: { className?: string }) {
     window.addEventListener("scroll", handleEarlyScroll, { passive: true });
     scheduleStart();
     return () => {
+      cancelAnimationFrame(capabilityFrame);
       cancelScheduledStart();
       window.clearTimeout(scrollSettleHandle);
       window.removeEventListener("scroll", handleEarlyScroll);
@@ -180,6 +209,15 @@ export function Hero3D({ className }: { className?: string }) {
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [enabled]);
+
+  useEffect(() => {
+    const host = containerRef.current?.closest("#hero") as HTMLElement | null;
+    if (!host) return;
+    host.dataset.mobiusTier = tier;
+    return () => {
+      if (host.dataset.mobiusTier === tier) delete host.dataset.mobiusTier;
+    };
+  }, [tier]);
 
   function handleFirstInteraction() {
     setShowHint(false);
@@ -232,7 +270,11 @@ export function Hero3D({ className }: { className?: string }) {
   const showScene = enabled && !reduced;
 
   return (
-    <div ref={containerRef} className={cn("relative", className)}>
+    <div
+      ref={containerRef}
+      data-mobius-tier={tier}
+      className={cn("relative", className)}
+    >
       {/* Persistent ambient glow (compensates for dropped postprocessing bloom). */}
       <div
         aria-hidden
@@ -241,14 +283,14 @@ export function Hero3D({ className }: { className?: string }) {
       <HeroPoster
         underworld={underworld}
         className={cn(
-          "absolute inset-0 transition-opacity duration-500",
+          "absolute inset-0",
           showScene && ready ? "opacity-0" : "opacity-100",
         )}
       />
       {showScene ? (
         <div
           className={cn(
-            "absolute inset-y-0 transition-opacity duration-500",
+            "absolute inset-y-0",
             // A wider render surface expands the camera's horizontal frustum
             // without changing the sculpture's on-screen size. This prevents
             // fast rotations from exposing the hard edge of the WebGL canvas.
@@ -269,8 +311,13 @@ export function Hero3D({ className }: { className?: string }) {
           </ErrorBoundary>
         </div>
       ) : null}
-      {showScene && ready && tier === "lite" && showHint ? (
-        <div className="text-smoke pointer-events-none absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/8 bg-black/35 px-3 py-1.5 font-mono text-[0.625rem] tracking-[0.08em] whitespace-nowrap backdrop-blur-sm motion-safe:animate-pulse">
+      {showScene && ready && tier !== "full" && showHint ? (
+        <div
+          className={cn(
+            "text-smoke pointer-events-none absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/8 px-3 py-1.5 font-mono text-[0.625rem] tracking-[0.08em] whitespace-nowrap",
+            tier === "economy" ? "bg-black/70" : "bg-black/35 backdrop-blur-sm",
+          )}
+        >
           <span className="text-molten" aria-hidden>
             ↔
           </span>

@@ -1,11 +1,9 @@
 import { Download, Mail } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Magnetic } from "@/components/ui/magnetic";
-import { ScrambleText } from "@/components/ui/scramble-text";
 import { SmoothLink } from "@/components/ui/smooth-link";
 import { Hero3D } from "@/components/three/hero-3d";
 import { ScrollCue } from "@/components/sections/scroll-cue";
-import { HeroSignature } from "@/components/sections/hero-signature";
 import { GitHubIcon, LinkedInIcon } from "@/components/icons";
 import { siteConfig } from "@/lib/site-config";
 import { cn } from "@/lib/utils";
@@ -35,12 +33,7 @@ const socials = [
 
 export function Hero() {
   return (
-    <ScrollSection
-      id="hero"
-      className="relative isolate"
-      flowStrength={18}
-      data-signature-intro="pending"
-    >
+    <ScrollSection id="hero" className="relative isolate" flowStrength={18}>
       <div
         aria-hidden
         className="hero-reactive-aura pointer-events-none absolute inset-0 z-[-1]"
@@ -49,10 +42,8 @@ export function Hero() {
         aria-hidden
         className="hero-reactive-caustics pointer-events-none absolute inset-0 z-[-1]"
       />
-      <HeroSignature />
-
       <div className="container-hades relative grid min-h-dvh grid-cols-1 content-start items-start gap-3 pt-24 pb-12 sm:gap-8 sm:pb-20 lg:grid-cols-12 lg:content-normal lg:items-center lg:gap-6">
-        <div className="hero-intro-copy relative flex flex-col gap-5 sm:gap-6 lg:col-span-7">
+        <div className="relative flex flex-col gap-5 sm:gap-6 lg:col-span-7">
           <p className="text-molten relative z-[30] font-mono text-[0.65rem] leading-[1.45] tracking-[0.07em] uppercase sm:text-label">
             {"// fullstack developer — java & react"}
           </p>
@@ -60,10 +51,7 @@ export function Hero() {
           <h1 className="font-display text-bone">
             <span className="hero-depth-title relative z-[30] block text-[length:clamp(2.35rem,11vw,2.85rem)] leading-[0.94] font-semibold tracking-[-0.025em] whitespace-nowrap sm:text-hero">
               <span className="hero-title-base block">
-                <ScrambleText
-                  text="Edu Ferreira"
-                  className="[word-spacing:0.08em]"
-                />
+                <span className="[word-spacing:0.08em]">Edu Ferreira</span>
               </span>
               <span
                 aria-hidden
@@ -130,8 +118,8 @@ export function Hero() {
           </ul>
         </div>
 
-        <div className="hero-intro-sculpture relative z-20 mt-3 sm:mt-0 lg:col-span-5 lg:overflow-visible">
-          <Hero3D className="hero-intro-sculpture-canvas mx-auto aspect-square w-full max-w-[26rem] sm:max-w-md lg:w-[148%] lg:max-w-none lg:-translate-x-[30%]" />
+        <div className="relative z-20 mt-3 sm:mt-0 lg:col-span-5 lg:overflow-visible">
+          <Hero3D className="mx-auto aspect-square w-full max-w-[26rem] sm:max-w-md lg:w-[148%] lg:max-w-none lg:-translate-x-[30%]" />
         </div>
       </div>
 

@@ -310,194 +310,28 @@
     color-mix(in oklab, var(--color-molten) 12%, transparent);
 }
 
-.hero-intro-drawing,
-.hero-form-thread,
-.hero-form-loop {
-  opacity: 0;
+/* Low-end Android keeps the reactive light, but repaints one gradient instead
+   of four and avoids a continuously changing caustic layer. */
+#hero[data-mobius-tier="economy"] .hero-reactive-aura {
+  transition: none;
+  background: radial-gradient(
+    circle at var(--mobius-light-x) var(--mobius-light-y),
+    color-mix(in oklab, var(--color-molten) 28%, transparent) 0%,
+    color-mix(in oklab, var(--color-molten) 11%, transparent) 22%,
+    transparent 52%
+  );
 }
 
-#hero[data-signature-intro="settled"]
-  :is(.hero-intro-drawing, .hero-form-thread, .hero-form-loop) {
-  opacity: 0 !important;
-  animation: none !important;
+#hero[data-mobius-tier="economy"] .hero-reactive-caustics {
+  display: none;
 }
 
-#hero[data-signature-intro="pending"] .hero-intro-copy > * {
-  opacity: 0;
-  transform: translateY(14px);
-}
-
-#hero[data-signature-intro="pending"] .hero-intro-sculpture-canvas {
-  opacity: 0;
-  clip-path: circle(0% at 50% 50%);
-}
-
-#hero[data-signature-intro="running"] .hero-intro-copy > * {
-  animation: hero-copy-arrival 720ms var(--ease-out-expo) both;
-}
-
-#hero[data-signature-intro="running"] .hero-intro-copy > :nth-child(2) {
-  animation-delay: 80ms;
-}
-
-#hero[data-signature-intro="running"] .hero-intro-copy > :nth-child(3) {
-  animation-delay: 150ms;
-}
-
-#hero[data-signature-intro="running"] .hero-intro-copy > :nth-child(4) {
-  animation-delay: 220ms;
-}
-
-#hero[data-signature-intro="running"] .hero-intro-copy > :nth-child(5) {
-  animation-delay: 290ms;
-}
-
-#hero[data-signature-intro="running"] .hero-intro-sculpture-canvas {
-  animation: hero-sculpture-form 1450ms 980ms var(--ease-out-expo) both;
-}
-
-#hero[data-signature-intro="running"] .hero-intro-drawing {
-  animation: hero-monogram-lifecycle 2480ms 60ms var(--ease-out-soft) both;
-}
-
-#hero[data-signature-intro="running"] .hero-intro-drawing path {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: hero-signature-draw 520ms 100ms var(--ease-out-expo) forwards;
-}
-
-#hero[data-signature-intro="running"] .hero-form-thread {
-  animation: hero-thread-flight 1050ms 430ms var(--ease-out-soft) both;
-}
-
-#hero[data-signature-intro="running"] .hero-form-thread-glow {
-  animation-delay: 400ms;
-}
-
-#hero[data-signature-intro="running"] .hero-form-loop {
-  animation: hero-loop-form 1400ms 1080ms var(--ease-out-expo) both;
-}
-
-#hero[data-signature-intro="running"] .hero-form-loop-glow {
-  animation-delay: 1040ms;
-}
-
-#hero[data-signature-intro="running"] .hero-title-light {
-  animation: hero-title-reflection 900ms 1180ms var(--ease-out-expo) both;
-}
-
-@keyframes hero-signature-draw {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes hero-copy-arrival {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes hero-monogram-lifecycle {
-  0% {
-    opacity: 0;
-  }
-
-  10%,
-  66% {
-    opacity: 1;
-    filter: blur(0);
-  }
-
-  100% {
-    opacity: 0;
-    filter: blur(4px);
-  }
-}
-
-@keyframes hero-thread-flight {
-  0% {
-    opacity: 0;
-    stroke-dasharray: 0.18 1;
-    stroke-dashoffset: 1;
-  }
-
-  12%,
-  78% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0;
-    stroke-dasharray: 0.18 1;
-    stroke-dashoffset: -0.18;
-  }
-}
-
-@keyframes hero-loop-form {
-  0% {
-    opacity: 0;
-    stroke-dasharray: 1;
-    stroke-dashoffset: 1;
-  }
-
-  14% {
-    opacity: 1;
-  }
-
-  72% {
-    opacity: 0.92;
-    stroke-dashoffset: 0;
-  }
-
-  100% {
-    opacity: 0;
-    stroke-dasharray: 1;
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes hero-sculpture-form {
-  0% {
-    opacity: 0;
-    clip-path: circle(0% at 50% 50%);
-  }
-
-  28% {
-    opacity: 0.82;
-    clip-path: circle(18% at 50% 50%);
-  }
-
-  68% {
-    opacity: 1;
-    clip-path: circle(62% at 50% 50%);
-  }
-
-  100% {
-    opacity: 1;
-    clip-path: circle(100% at 50% 50%);
-  }
-}
-
-@keyframes hero-title-reflection {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-    filter: brightness(0.8);
-  }
-  48% {
-    opacity: 1;
-    filter: brightness(1.8);
-  }
-  to {
-    transform: translateX(0);
-  }
+[data-mobius-tier="economy"] > .mobius-ambient-glow {
+  background: radial-gradient(
+    circle at 50% 48%,
+    color-mix(in oklab, var(--color-molten) 34%, transparent),
+    transparent 69%
+  );
 }
 
 @media (min-width: 64rem) {
