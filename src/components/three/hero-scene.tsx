@@ -10,7 +10,9 @@ export type SceneTier = "full" | "lite";
 
 const DPR_BY_TIER: Record<SceneTier, [number, number]> = {
   full: [1, 1.75],
-  lite: [1, 1.5],
+  // 1.5 DPR costs 2.25x the pixels of DPR 1. Android keeps a modest ceiling
+  // and can still fall back to DPR 1 when the monitor detects pressure.
+  lite: [1, 1.25],
 };
 
 interface HeroSceneProps {
@@ -21,6 +23,7 @@ interface HeroSceneProps {
   highDpr: boolean;
   underworld: boolean;
   onReady?: () => void;
+  onFirstInteraction?: () => void;
 }
 
 export function HeroScene({
@@ -29,18 +32,20 @@ export function HeroScene({
   highDpr,
   underworld,
   onReady,
+  onFirstInteraction,
 }: HeroSceneProps) {
   const [degrade, setDegrade] = useState(0);
   const frozen = degrade >= 2;
   const highDetail = tier === "full" && highDpr && degrade === 0;
+  const dpr: [number, number] = degrade >= 1 ? [1, 1] : DPR_BY_TIER[tier];
 
   return (
     <Canvas
-      dpr={DPR_BY_TIER[tier]}
+      dpr={dpr}
       camera={{ position: [0, 0, 4.45], fov: 42 }}
       gl={{
         alpha: true,
-        antialias: true,
+        antialias: tier === "full",
         powerPreference: "high-performance",
       }}
       frameloop={active ? "always" : "never"}
@@ -61,6 +66,7 @@ export function HeroScene({
           highDetail={highDetail}
           touch={tier === "lite"}
           underworld={underworld}
+          onFirstInteraction={onFirstInteraction}
         />
       </PerformanceMonitor>
     </Canvas>

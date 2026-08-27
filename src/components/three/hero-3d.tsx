@@ -10,6 +10,8 @@ import { useMounted } from "@/hooks/use-mounted";
 import { useReducedMotionSafe } from "@/hooks/use-reduced-motion-safe";
 import { cn } from "@/lib/utils";
 
+const MOBIUS_HINT_KEY = "mobius-interaction-discovered";
+
 const HeroScene = dynamic(
   () => import("./hero-scene").then((m) => m.HeroScene),
   { ssr: false },
@@ -79,17 +81,19 @@ export function Hero3D({ className }: { className?: string }) {
   const [highDpr, setHighDpr] = useState(false);
   const [ready, setReady] = useState(false);
   const [active, setActive] = useState(true);
+  const [showHint, setShowHint] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return localStorage.getItem(MOBIUS_HINT_KEY) !== "true";
+    } catch {
+      return true;
+    }
+  });
 
   useEffect(() => {
     if (reduced) return;
     const gates = evaluateGates();
     if (!gates.ok) return;
-
-    const start = () => {
-      setTier(gates.tier);
-      setHighDpr(gates.highDpr);
-      setEnabled(true);
-    };
 
     const win = window as Window & {
       requestIdleCallback?: (
@@ -100,15 +104,54 @@ export function Hero3D({ className }: { className?: string }) {
     };
     // Phones get a longer leash so the shader compile never lands on LCP.
     const timeout = gates.tier === "lite" ? 3000 : 2000;
-    let handle = 0;
-    if (win.requestIdleCallback) {
-      handle = win.requestIdleCallback(start, { timeout });
-    } else {
-      handle = window.setTimeout(start, gates.tier === "lite" ? 1400 : 800);
+    const fallbackDelay = gates.tier === "lite" ? 1400 : 800;
+    let idleHandle = 0;
+    let fallbackHandle = 0;
+    let scrollSettleHandle = 0;
+    let started = false;
+
+    const cancelScheduledStart = () => {
+      if (idleHandle && win.cancelIdleCallback) {
+        win.cancelIdleCallback(idleHandle);
+        idleHandle = 0;
+      }
+      if (fallbackHandle) {
+        window.clearTimeout(fallbackHandle);
+        fallbackHandle = 0;
+      }
+    };
+
+    const start = () => {
+      if (started) return;
+      started = true;
+      window.removeEventListener("scroll", handleEarlyScroll);
+      setTier(gates.tier);
+      setHighDpr(gates.highDpr);
+      setEnabled(true);
+    };
+
+    const scheduleStart = () => {
+      cancelScheduledStart();
+      if (win.requestIdleCallback) {
+        idleHandle = win.requestIdleCallback(start, { timeout });
+      } else {
+        fallbackHandle = window.setTimeout(start, fallbackDelay);
+      }
+    };
+
+    function handleEarlyScroll() {
+      if (started) return;
+      cancelScheduledStart();
+      window.clearTimeout(scrollSettleHandle);
+      scrollSettleHandle = window.setTimeout(scheduleStart, 260);
     }
+
+    window.addEventListener("scroll", handleEarlyScroll, { passive: true });
+    scheduleStart();
     return () => {
-      if (win.cancelIdleCallback) win.cancelIdleCallback(handle);
-      else clearTimeout(handle);
+      cancelScheduledStart();
+      window.clearTimeout(scrollSettleHandle);
+      window.removeEventListener("scroll", handleEarlyScroll);
     };
   }, [reduced]);
 
@@ -135,6 +178,15 @@ export function Hero3D({ className }: { className?: string }) {
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [enabled]);
+
+  function handleFirstInteraction() {
+    setShowHint(false);
+    try {
+      localStorage.setItem(MOBIUS_HINT_KEY, "true");
+    } catch {
+      // Storage can be unavailable in private/restricted browser contexts.
+    }
+  }
 
   // `reduced` flips to true one tick after hydration. The effect above cancels
   // the pending idle callback, but deriving here also covers the race where it
@@ -173,8 +225,17 @@ export function Hero3D({ className }: { className?: string }) {
               highDpr={highDpr}
               underworld={underworld}
               onReady={() => setReady(true)}
+              onFirstInteraction={handleFirstInteraction}
             />
           </ErrorBoundary>
+        </div>
+      ) : null}
+      {showScene && ready && tier === "lite" && showHint ? (
+        <div className="text-smoke pointer-events-none absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/8 bg-black/35 px-3 py-1.5 font-mono text-[0.625rem] tracking-[0.08em] whitespace-nowrap backdrop-blur-sm motion-safe:animate-pulse">
+          <span className="text-molten" aria-hidden>
+            ↔
+          </span>
+          Arraste · toque · segure
         </div>
       ) : null}
     </div>

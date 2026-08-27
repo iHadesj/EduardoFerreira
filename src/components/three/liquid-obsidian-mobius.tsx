@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Float } from "@react-three/drei";
 import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
@@ -9,11 +9,15 @@ const VERTEX_SHADER = /* glsl */ `
   uniform float uActivity;
   uniform vec2 uPointer;
   uniform float uPulse;
+  uniform float uPulsePhase;
+  uniform float uScrollProgress;
   uniform float uTime;
   uniform float uUnderworld;
 
   varying float vDeformation;
+  varying float vInteraction;
   varying vec2 vLoop;
+  varying vec3 vWorldNormal;
   varying vec3 vWorldPosition;
   varying vec2 vUv;
 
@@ -82,10 +86,15 @@ const VERTEX_SHADER = /* glsl */ `
       proximity *
       (travelingWave * 0.11 + crossWave * 0.035) *
       mix(1.0, 1.45, uUnderworld);
+    float pulseDistance = abs(atan(
+      sin(loopPhase - uPulsePhase),
+      cos(loopPhase - uPulsePhase)
+    ));
+    float pulseEnvelope = smoothstep(0.58, 0.04, pulseDistance) * uPulse;
     float pulseWave =
-      sin(loopPhase * 6.0 - uTime * 7.0) *
-      uPulse *
-      mix(0.06, 0.105, uUnderworld);
+      sin(crossSectionPhase * 2.0 + uPulsePhase * 1.5) *
+      pulseEnvelope *
+      mix(0.075, 0.125, uUnderworld);
     float displacement = idleFlow + cursorFlow + pulseWave;
 
     vec3 transformed = position + normal * displacement;
@@ -109,10 +118,16 @@ const VERTEX_SHADER = /* glsl */ `
       0.034 *
       uUnderworld +
       proximity * cos(crossSectionPhase * 2.0) * 0.048;
+    float scrollDissolve = smoothstep(0.28, 0.96, uScrollProgress);
+    transformed += normal * (
+      sin(loopPhase * 11.0 + crossSectionPhase * 3.0) * 0.055 + 0.035
+    ) * scrollDissolve;
     vec4 worldPosition = modelMatrix * vec4(transformed, 1.0);
 
     vDeformation = proximity + abs(idleFlow) * 8.0 + uPulse * 0.35;
+    vInteraction = max(proximity, pulseEnvelope);
     vLoop = vec2(cos(uv.x * 6.2832), sin(uv.x * 6.2832));
+    vWorldNormal = normalize(mat3(modelMatrix) * normal);
     vWorldPosition = worldPosition.xyz;
     vUv = uv;
 
@@ -122,18 +137,38 @@ const VERTEX_SHADER = /* glsl */ `
 
 const FRAGMENT_SHADER = /* glsl */ `
   uniform float uActivity;
+  uniform float uModeFrom;
+  uniform float uModeProgress;
+  uniform float uModeTo;
+  uniform float uScrollProgress;
   uniform float uTime;
   uniform float uUnderworld;
 
   varying float vDeformation;
+  varying float vInteraction;
   varying vec2 vLoop;
+  varying vec3 vWorldNormal;
   varying vec3 vWorldPosition;
   varying vec2 vUv;
 
   void main() {
     vec3 viewDirection = normalize(cameraPosition - vWorldPosition);
-    vec3 normal = normalize(cross(dFdx(vWorldPosition), dFdy(vWorldPosition)));
+    vec3 geometricNormal = normalize(
+      cross(dFdx(vWorldPosition), dFdy(vWorldPosition))
+    );
+    vec3 normal = normalize(mix(normalize(vWorldNormal), geometricNormal, 0.18));
     normal = faceforward(normal, -viewDirection, normal);
+
+    float transitionEdge = uModeProgress * 1.3 - 0.15;
+    float materialWave = 1.0 - smoothstep(
+      transitionEdge - 0.08,
+      transitionEdge + 0.08,
+      vUv.x
+    );
+    float materialMode = mix(uModeFrom, uModeTo, materialWave);
+    float goldMode = clamp(1.0 - abs(materialMode - 1.0), 0.0, 1.0);
+    float emberMode = smoothstep(1.05, 2.0, materialMode);
+    float worldMode = max(uUnderworld, emberMode);
 
     float facing = max(dot(normal, viewDirection), 0.0);
     float fresnel = pow(1.0 - facing, 2.15);
@@ -145,7 +180,7 @@ const FRAGMENT_SHADER = /* glsl */ `
     float breathLight = mix(
       surfaceBreathLight,
       predatorBreathLight,
-      uUnderworld
+      worldMode
     );
 
     float loopAngle = atan(vLoop.y, vLoop.x);
@@ -160,13 +195,13 @@ const FRAGMENT_SHADER = /* glsl */ `
       uTime * 3.15 +
       sin(loopAngle * 5.0 + uTime * 1.7) * 0.72
     ) * 0.5 + 0.5;
-    float liquidBand = mix(surfaceBand, predatorBand, uUnderworld);
+    float liquidBand = mix(surfaceBand, predatorBand, worldMode);
     liquidBand = smoothstep(0.42, 0.95, liquidBand);
 
     vec2 glintDirection = mix(
       vec2(cos(uTime * 0.75), sin(uTime * 0.75)),
       vec2(cos(uTime * 1.85), sin(uTime * 1.85)),
-      uUnderworld
+      worldMode
     );
     float glintAlignment = dot(normalize(vLoop), glintDirection);
     float travelingGlint = smoothstep(0.64, 1.0, glintAlignment);
@@ -183,10 +218,10 @@ const FRAGMENT_SHADER = /* glsl */ `
       sin(loopAngle * 3.0 + uTime * 2.2) * 1.7 +
       cos(vUv.y * 18.8496) * 2.15
     ));
-    float veinField = mix(surfaceVein, predatorVein, uUnderworld);
+    float veinField = mix(surfaceVein, predatorVein, worldMode);
     float livingVein = smoothstep(0.91, 0.985, veinField);
     float veinPulse =
-      sin(uTime * mix(2.4, 5.8, uUnderworld) - loopAngle * 3.0) *
+      sin(uTime * mix(2.4, 5.8, worldMode) - loopAngle * 3.0) *
       0.5 +
       0.5;
 
@@ -199,46 +234,67 @@ const FRAGMENT_SHADER = /* glsl */ `
       dot(reflect(-sweepDirection, normal), viewDirection),
       0.0
     ), 18.0);
+    vec3 sharpSweepDirection = normalize(vec3(
+      cos(uTime * 0.43 + 1.2),
+      -0.42,
+      sin(uTime * 0.43 + 1.2) + 0.9
+    ));
+    float sharpSpecular = pow(max(
+      dot(reflect(-sharpSweepDirection, normal), viewDirection),
+      0.0
+    ), 48.0);
+    float reflectionRibbon = pow(fresnel, 0.72) * (
+      sin(vWorldPosition.y * 8.0 - vWorldPosition.x * 3.5 + uTime * 0.55) *
+      0.5 + 0.5
+    );
 
     vec3 obsidian = mix(
       vec3(0.006, 0.005, 0.009),
       vec3(0.0015, 0.0002, 0.0005),
-      uUnderworld
+      worldMode
     );
     vec3 graphite = mix(
       vec3(0.055, 0.065, 0.075),
       vec3(0.052, 0.0025, 0.007),
-      uUnderworld
+      worldMode
     );
     vec3 coldReflection = mix(
       vec3(0.13, 0.34, 0.38),
       vec3(0.38, 0.006, 0.016),
-      uUnderworld
+      worldMode
     );
     vec3 molten = mix(
       vec3(0.91, 0.54, 0.18),
       vec3(0.79, 0.018, 0.009),
-      uUnderworld
+      worldMode
     );
     vec3 brightGold = mix(
       vec3(1.0, 0.76, 0.34),
       vec3(1.0, 0.075, 0.022),
-      uUnderworld
+      worldMode
     );
+    obsidian = mix(obsidian, vec3(0.045, 0.018, 0.002), goldMode);
+    graphite = mix(graphite, vec3(0.28, 0.105, 0.012), goldMode);
+    coldReflection = mix(coldReflection, vec3(0.98, 0.46, 0.08), goldMode);
+    molten = mix(molten, vec3(1.0, 0.68, 0.14), goldMode);
+    brightGold = mix(brightGold, vec3(1.0, 0.93, 0.56), goldMode);
 
     vec3 color = mix(obsidian, graphite, fresnel * 0.8 + liquidBand * 0.16);
-    color += coldReflection * fresnel * (0.34 + liquidBand * 0.2);
+    color += coldReflection * fresnel * (0.48 + liquidBand * 0.26);
     color += molten * liquidBand * fresnel * (0.17 + breathLight * 0.07);
     color += mix(coldReflection, molten, edgeDistance) * liquidBand * 0.075;
-    color += mix(coldReflection, brightGold, travelingGlint) * movingSpecular * 0.62;
+    color += mix(coldReflection, brightGold, travelingGlint) * movingSpecular * 0.86;
+    color += brightGold * sharpSpecular * (0.82 + goldMode * 0.35);
+    color += coldReflection * reflectionRibbon * (0.13 + goldMode * 0.1);
     color += mix(coldReflection, brightGold, veinPulse) * livingVein * (0.14 + uActivity * 0.12);
     color += coldReflection * liquidBand * (0.035 + veinPulse * 0.04);
     color += graphite * vDeformation * 0.32;
     color +=
       brightGold *
       livingVein *
-      uUnderworld *
+      worldMode *
       (0.13 + predatorBreathLight * 0.18);
+    color += brightGold * vInteraction * (0.24 + fresnel * 0.22);
 
     vec3 edgeColor = mix(molten, brightGold, travelingGlint);
     color = mix(
@@ -252,12 +308,102 @@ const FRAGMENT_SHADER = /* glsl */ `
       travelingGlint *
       (0.4 + breathLight * 0.1 + uActivity * 0.22);
 
+    // Skip the comparatively expensive dissolve noise while the hero is in
+    // its normal state. The uniform branch is coherent across the whole draw.
+    if (uScrollProgress > 0.3) {
+      float dissolveAmount = smoothstep(0.3, 0.94, uScrollProgress);
+      float dissolveNoise = fract(sin(dot(
+        floor(vUv * vec2(144.0, 28.0)),
+        vec2(12.9898, 78.233)
+      )) * 43758.5453);
+      if (dissolveNoise < dissolveAmount * 0.94) discard;
+      float dissolveEdge = 1.0 - smoothstep(
+        0.0,
+        0.075,
+        abs(dissolveNoise - dissolveAmount * 0.94)
+      );
+      color += brightGold * dissolveEdge * dissolveAmount * 0.72;
+    }
+
     gl_FragColor = vec4(color, 1.0);
   }
 `;
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
+
+const FULL_TURN = Math.PI * 2;
+const LONG_PRESS_MS = 720;
+const AWAKENED_DURATION_MS = 3600;
+const MATERIAL_CHANGE_COOLDOWN_MS = 1200;
+const TRAIL_LIFETIME = 0.62;
+
+interface TrailField {
+  positions: Float32Array;
+  colors: Float32Array;
+  velocities: Float32Array;
+  life: Float32Array;
+  cursor: number;
+}
+
+interface DissolveField {
+  base: Float32Array;
+  positions: Float32Array;
+  colors: Float32Array;
+  directions: Float32Array;
+}
+
+function seededValue(index: number) {
+  const value = Math.sin(index * 12.9898 + 4.1414) * 43758.5453;
+  return value - Math.floor(value);
+}
+
+function createTrailField(count: number): TrailField {
+  const positions = new Float32Array(count * 3);
+  positions.fill(20);
+  return {
+    positions,
+    colors: new Float32Array(count * 3),
+    velocities: new Float32Array(count * 3),
+    life: new Float32Array(count),
+    cursor: 0,
+  };
+}
+
+function createDissolveField(count: number): DissolveField {
+  const base = new Float32Array(count * 3);
+  const positions = new Float32Array(count * 3);
+  const colors = new Float32Array(count * 3);
+  const directions = new Float32Array(count * 3);
+
+  for (let index = 0; index < count; index += 1) {
+    const angle = (index / count) * FULL_TURN;
+    const across = ((index % 7) / 6 - 0.5) * 0.62;
+    const halfTwist = angle * 0.5;
+    const radialOffset = across * Math.cos(halfTwist);
+    const offset = index * 3;
+    const seed = seededValue(index);
+    const secondSeed = seededValue(index + count);
+
+    base[offset] = (1 + radialOffset) * Math.cos(angle);
+    base[offset + 1] = (1 + radialOffset) * Math.sin(angle);
+    base[offset + 2] = across * Math.sin(halfTwist);
+    positions[offset] = base[offset];
+    positions[offset + 1] = base[offset + 1]!;
+    positions[offset + 2] = base[offset + 2]!;
+
+    directions[offset] = Math.cos(angle) * (0.28 + seed * 0.38);
+    directions[offset + 1] = -0.5 - seed * 0.45 + Math.sin(angle) * 0.12;
+    directions[offset + 2] = (secondSeed - 0.5) * 0.72;
+
+    const warm = index % 4 !== 0;
+    colors[offset] = warm ? 1 : 0.24;
+    colors[offset + 1] = warm ? 0.57 + seed * 0.24 : 0.62;
+    colors[offset + 2] = warm ? 0.08 : 0.68;
+  }
+
+  return { base, positions, colors, directions };
+}
 
 function createMobiusGeometry(uSegments: number, vSegments: number) {
   const geometry = new THREE.BufferGeometry();
@@ -337,6 +483,8 @@ interface LiquidObsidianMobiusProps {
   touch?: boolean;
   /** Turns the sculpture into its faster black-and-red underworld form. */
   underworld?: boolean;
+  /** Hides the mobile gesture hint after the first direct manipulation. */
+  onFirstInteraction?: () => void;
 }
 
 export function LiquidObsidianMobius({
@@ -344,47 +492,168 @@ export function LiquidObsidianMobius({
   highDetail = false,
   touch = false,
   underworld = false,
+  onFirstInteraction,
 }: LiquidObsidianMobiusProps) {
   const groupRef = useRef<THREE.Group>(null);
+  const scrollGroupRef = useRef<THREE.Group>(null);
   const sculptureRef = useRef<THREE.Group>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const trailRef = useRef<THREE.Points>(null);
+  const trailGeometryRef = useRef<THREE.BufferGeometry>(null);
+  const trailMaterialRef = useRef<THREE.PointsMaterial>(null);
+  const dissolveRef = useRef<THREE.Points>(null);
+  const dissolveGeometryRef = useRef<THREE.BufferGeometry>(null);
+  const dissolveMaterialRef = useRef<THREE.PointsMaterial>(null);
   const hovered = useRef(false);
   const elapsed = useRef(0);
   const pulse = useRef(0);
+  const pulsePhase = useRef(0);
+  const pulseHapticPending = useRef(false);
   const clickTimes = useRef<number[]>([]);
+  const lastTap = useRef(0);
+  const lastMaterialChange = useRef(Number.NEGATIVE_INFINITY);
+  const awakenedUntil = useRef(0);
+  const longPressTimer = useRef<number | undefined>(undefined);
+  const firstInteractionSent = useRef(false);
+  const scrollTarget = useRef(0);
+  const lastDissolve = useRef(Number.NEGATIVE_INFINITY);
+  const materialTransition = useRef({ from: 0, to: 0, progress: 1 });
+  const deviceTilt = useRef({ x: 0, y: 0 });
+  const orientationBaseline = useRef<{ beta: number; gamma: number } | null>(
+    null,
+  );
+  const orientationListener = useRef<
+    ((event: DeviceOrientationEvent) => void) | null
+  >(null);
   const { pointer } = useThree();
 
-  const drag = useRef({ active: false, x: 0, y: 0, travel: 0 });
+  const drag = useRef({
+    active: false,
+    x: 0,
+    y: 0,
+    travel: 0,
+    longPressed: false,
+  });
   const offset = useRef({ x: 0, y: 0 });
   const velocity = useRef({ x: 0, y: 0 });
 
   const geometry = useMemo(
-    () => createMobiusGeometry(highDetail ? 180 : 120, highDetail ? 34 : 24),
-    [highDetail],
+    () =>
+      createMobiusGeometry(
+        highDetail ? 180 : touch ? 96 : 120,
+        highDetail ? 34 : touch ? 18 : 24,
+      ),
+    [highDetail, touch],
   );
+  const trailFieldRef = useRef(createTrailField(touch ? 14 : 34));
+  const dissolveFieldRef = useRef(createDissolveField(touch ? 36 : 78));
   const uniforms = useMemo(
     () => ({
       uActivity: { value: 0 },
+      uModeFrom: { value: 0 },
+      uModeProgress: { value: 1 },
+      uModeTo: { value: 0 },
       uPointer: { value: new THREE.Vector2(3, 3) },
       uPulse: { value: 0 },
+      uPulsePhase: { value: 0 },
+      uScrollProgress: { value: 0 },
       uTime: { value: 0 },
       uUnderworld: { value: 0 },
     }),
     [],
   );
 
-  useFrame((_, delta) => {
+  useEffect(() => {
+    const trailGeometry = trailGeometryRef.current;
+    const dissolveGeometry = dissolveGeometryRef.current;
+    if (trailGeometry) {
+      trailGeometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(trailFieldRef.current.positions, 3),
+      );
+      trailGeometry.setAttribute(
+        "color",
+        new THREE.BufferAttribute(trailFieldRef.current.colors, 3),
+      );
+    }
+    if (dissolveGeometry) {
+      dissolveGeometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(dissolveFieldRef.current.positions, 3),
+      );
+      dissolveGeometry.setAttribute(
+        "color",
+        new THREE.BufferAttribute(dissolveFieldRef.current.colors, 3),
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    const updateScroll = () => {
+      const travel = Math.max(window.innerHeight * 0.82, 1);
+      const nextScroll = clamp(window.scrollY / travel, 0, 1);
+      // Keep this synchronized even while frameloop="never". Otherwise the
+      // scene resumes from an old scroll state and rapidly catches up.
+      scrollTarget.current = nextScroll;
+    };
+    updateScroll();
+    window.addEventListener("scroll", updateScroll, { passive: true });
+    window.addEventListener("resize", updateScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", updateScroll);
+      window.removeEventListener("resize", updateScroll);
+    };
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (longPressTimer.current) {
+        window.clearTimeout(longPressTimer.current);
+      }
+      if (orientationListener.current) {
+        window.removeEventListener(
+          "deviceorientation",
+          orientationListener.current,
+        );
+      }
+    },
+    [],
+  );
+
+  useFrame((_, rawDelta) => {
+    // R3F can report a large first delta after an off-screen pause. Capping it
+    // prevents inertia, pulses and autonomous rotation from jumping at once.
+    const delta = Math.min(rawDelta, 1 / 30);
     const group = groupRef.current;
+    const scrollGroup = scrollGroupRef.current;
     const sculpture = sculptureRef.current;
     const material = materialRef.current;
-    if (!group || !sculpture || !material) return;
+    if (!group || !scrollGroup || !sculpture || !material) return;
 
     const dragState = drag.current;
     const response = Math.min(1, delta * 7);
+    const awakened = performance.now() < awakenedUntil.current;
     material.uniforms.uUnderworld!.value +=
-      ((underworld ? 1 : 0) - material.uniforms.uUnderworld!.value) *
+      ((underworld || awakened ? 1 : 0) -
+        material.uniforms.uUnderworld!.value) *
       Math.min(1, delta * 2.8);
     const aggression = material.uniforms.uUnderworld!.value as number;
+    const scroll = scrollTarget.current;
+
+    const transition = materialTransition.current;
+    transition.progress = Math.min(1, transition.progress + delta * 0.92);
+
+    if (pulse.current > 0) {
+      pulsePhase.current += delta * (5.7 + aggression * 1.5);
+      const pulseProgress = pulsePhase.current / FULL_TURN;
+      pulse.current = clamp((1 - pulseProgress) / 0.2, 0, 1);
+      if (pulseProgress >= 1) {
+        pulse.current = 0;
+        pulsePhase.current = 0;
+        if (pulseHapticPending.current) navigator.vibrate?.(12);
+        pulseHapticPending.current = false;
+      }
+    }
 
     if (!frozen) {
       elapsed.current += delta * (1 + aggression * 0.42);
@@ -406,8 +675,12 @@ export function LiquidObsidianMobius({
       offset.current.y += (0 - offset.current.y) * Math.min(1, delta * 0.18);
     }
 
-    const pointerTiltX = touch ? 0 : pointer.y * 0.14;
-    const pointerTiltY = touch ? 0 : pointer.x * 0.2;
+    const gyroTiltX =
+      touch && !dragState.active ? deviceTilt.current.y * 0.12 : 0;
+    const gyroTiltY =
+      touch && !dragState.active ? deviceTilt.current.x * 0.17 : 0;
+    const pointerTiltX = touch ? gyroTiltX : pointer.y * 0.14;
+    const pointerTiltY = touch ? gyroTiltY : pointer.x * 0.2;
     const targetX = 0.7 + pointerTiltX + offset.current.x;
     const targetY = -0.34 + pointerTiltY + offset.current.y;
     const rotationResponse =
@@ -419,6 +692,11 @@ export function LiquidObsidianMobius({
     const positionResponse = 1 - Math.exp(-delta * 2.15);
     group.position.x += (targetPositionX - group.position.x) * positionResponse;
     group.position.y += (targetPositionY - group.position.y) * positionResponse;
+    // A subtle scroll response is enough; a full turn looked like a burst of
+    // autonomous motion when returning to the hero.
+    scrollGroup.rotation.z = scroll * 0.85;
+    scrollGroup.position.y = -scroll * 0.22;
+    scrollGroup.scale.setScalar(1 - scroll * 0.08);
 
     if (!frozen) {
       const breath = Math.sin(elapsed.current * 1.38);
@@ -461,29 +739,179 @@ export function LiquidObsidianMobius({
       );
     }
 
-    pulse.current = Math.max(0, pulse.current - delta * 0.95);
+    const trailField = trailFieldRef.current;
+    const trailPositions = trailField.positions;
+    const trailColors = trailField.colors;
+    let trailChanged = false;
+    for (let index = 0; index < trailField.life.length; index += 1) {
+      const previousLife = trailField.life[index]!;
+      if (previousLife <= 0) continue;
+
+      const remaining = Math.max(0, previousLife - delta);
+      trailField.life[index] = remaining;
+      trailChanged = true;
+      const offsetIndex = index * 3;
+      if (remaining > 0) {
+        const strength = remaining / TRAIL_LIFETIME;
+        trailPositions[offsetIndex] =
+          trailPositions[offsetIndex]! +
+          trailField.velocities[offsetIndex]! * delta;
+        trailPositions[offsetIndex + 1] =
+          trailPositions[offsetIndex + 1]! +
+          trailField.velocities[offsetIndex + 1]! * delta;
+        trailPositions[offsetIndex + 2] =
+          trailPositions[offsetIndex + 2]! +
+          trailField.velocities[offsetIndex + 2]! * delta;
+        trailColors[offsetIndex] = strength;
+        trailColors[offsetIndex + 1] =
+          strength * (aggression > 0.45 ? 0.08 : 0.58);
+        trailColors[offsetIndex + 2] =
+          strength * (aggression > 0.45 ? 0.025 : 0.12);
+      } else {
+        trailPositions[offsetIndex] = 20;
+        trailPositions[offsetIndex + 1] = 20;
+        trailPositions[offsetIndex + 2] = 20;
+      }
+    }
+    if (trailChanged && trailRef.current) {
+      const positionAttribute =
+        trailRef.current.geometry.getAttribute("position");
+      const colorAttribute = trailRef.current.geometry.getAttribute("color");
+      if (positionAttribute) positionAttribute.needsUpdate = true;
+      if (colorAttribute) colorAttribute.needsUpdate = true;
+    }
+
+    const dissolve = clamp((scroll - 0.18) / 0.82, 0, 1);
+    const dissolveField = dissolveFieldRef.current;
+    const dissolveChanged = Math.abs(dissolve - lastDissolve.current) > 0.002;
+    if (dissolveChanged && dissolveRef.current && dissolveMaterialRef.current) {
+      for (let index = 0; index < dissolveField.positions.length; index += 1) {
+        dissolveField.positions[index] =
+          dissolveField.base[index]! +
+          dissolveField.directions[index]! * dissolve * 0.92;
+      }
+      const positionAttribute =
+        dissolveRef.current.geometry.getAttribute("position");
+      if (positionAttribute) positionAttribute.needsUpdate = true;
+      dissolveMaterialRef.current.opacity = Math.sin(dissolve * Math.PI) * 0.78;
+      lastDissolve.current = dissolve;
+    }
+
     const targetActivity = hovered.current || dragState.active ? 1 : 0;
     const pointerUniform = material.uniforms.uPointer!.value as THREE.Vector2;
     pointerUniform.lerp(pointer, response);
     material.uniforms.uTime!.value = elapsed.current;
     material.uniforms.uPulse!.value = pulse.current;
+    material.uniforms.uPulsePhase!.value = pulsePhase.current;
+    material.uniforms.uScrollProgress!.value = scroll;
+    material.uniforms.uModeFrom!.value = transition.from;
+    material.uniforms.uModeTo!.value = transition.to;
+    material.uniforms.uModeProgress!.value = transition.progress;
     material.uniforms.uActivity!.value +=
       (targetActivity - material.uniforms.uActivity!.value) * response;
   });
 
+  function clearLongPress() {
+    if (longPressTimer.current) {
+      window.clearTimeout(longPressTimer.current);
+      longPressTimer.current = undefined;
+    }
+  }
+
+  function enableDeviceTilt() {
+    if (!touch || orientationListener.current) return;
+
+    const listener = (event: DeviceOrientationEvent) => {
+      if (event.beta === null || event.gamma === null) return;
+      if (!orientationBaseline.current) {
+        orientationBaseline.current = {
+          beta: event.beta,
+          gamma: event.gamma,
+        };
+      }
+      const baseline = orientationBaseline.current;
+      deviceTilt.current.x = clamp((event.gamma - baseline.gamma) / 24, -1, 1);
+      deviceTilt.current.y = clamp((event.beta - baseline.beta) / 32, -1, 1);
+    };
+
+    orientationListener.current = listener;
+    window.addEventListener("deviceorientation", listener, { passive: true });
+  }
+
+  function markFirstInteraction() {
+    if (!firstInteractionSent.current) {
+      firstInteractionSent.current = true;
+      onFirstInteraction?.();
+    }
+    enableDeviceTilt();
+  }
+
+  function triggerPulse(withCompletionHaptic: boolean) {
+    pulse.current = 1;
+    pulsePhase.current = 0;
+    pulseHapticPending.current = withCompletionHaptic;
+  }
+
+  function emitTrail(worldPoint: THREE.Vector3, movement: number) {
+    const group = groupRef.current;
+    if (!group || movement < 1.5) return;
+
+    const source = group.worldToLocal(worldPoint.clone());
+    const angle = Math.atan2(source.y, source.x);
+    const radius = 1.02 + Math.sin(angle * 3) * 0.035;
+    source.set(
+      Math.cos(angle) * radius,
+      Math.sin(angle) * radius,
+      clamp(source.z * 0.22, -0.18, 0.18),
+    );
+
+    const emissionCount = movement > 10 ? 2 : 1;
+    for (let emission = 0; emission < emissionCount; emission += 1) {
+      const trailField = trailFieldRef.current;
+      const index = trailField.cursor % trailField.life.length;
+      trailField.cursor += 1;
+      const offsetIndex = index * 3;
+      const seed = seededValue(trailField.cursor + emission);
+      const radialX = Math.cos(angle);
+      const radialY = Math.sin(angle);
+
+      trailField.positions[offsetIndex] = source.x + (seed - 0.5) * 0.055;
+      trailField.positions[offsetIndex + 1] =
+        source.y + (seededValue(index + 31) - 0.5) * 0.055;
+      trailField.positions[offsetIndex + 2] = source.z;
+      trailField.velocities[offsetIndex] = radialX * (0.12 + seed * 0.13);
+      trailField.velocities[offsetIndex + 1] =
+        radialY * (0.12 + seed * 0.13) + 0.035;
+      trailField.velocities[offsetIndex + 2] = (seed - 0.5) * 0.22;
+      trailField.life[index] = TRAIL_LIFETIME;
+    }
+  }
+
   function handlePointerDown(event: ThreeEvent<PointerEvent>) {
     event.stopPropagation();
     (event.target as Element).setPointerCapture?.(event.pointerId);
+    markFirstInteraction();
     hovered.current = true;
-    pulse.current = Math.max(pulse.current, 0.3);
     drag.current = {
       active: true,
       x: event.clientX,
       y: event.clientY,
       travel: 0,
+      longPressed: false,
     };
     velocity.current.x = 0;
     velocity.current.y = 0;
+
+    clearLongPress();
+    longPressTimer.current = window.setTimeout(() => {
+      const dragState = drag.current;
+      if (!dragState.active || dragState.travel > 10) return;
+      dragState.longPressed = true;
+      awakenedUntil.current = performance.now() + AWAKENED_DURATION_MS;
+      triggerPulse(false);
+      navigator.vibrate?.([24, 32, 54]);
+      longPressTimer.current = undefined;
+    }, LONG_PRESS_MS);
   }
 
   function handlePointerMove(event: ThreeEvent<PointerEvent>) {
@@ -495,6 +923,7 @@ export function LiquidObsidianMobius({
     dragState.x = event.clientX;
     dragState.y = event.clientY;
     dragState.travel += Math.abs(dx) + Math.abs(dy);
+    if (dragState.travel > 10) clearLongPress();
 
     const yaw = dx * (touch ? 0.0062 : 0.0045);
     const tilt = dy * (touch ? 0.0044 : 0.0032);
@@ -502,25 +931,65 @@ export function LiquidObsidianMobius({
     offset.current.x = clamp(offset.current.x + tilt, -0.38, 0.38);
     velocity.current.y = yaw;
     velocity.current.x = tilt;
+    emitTrail(event.point, Math.abs(dx) + Math.abs(dy));
   }
 
   function handlePointerUp(event: ThreeEvent<PointerEvent>) {
     if (!drag.current.active) return;
+    clearLongPress();
     drag.current.active = false;
     (event.target as Element).releasePointerCapture?.(event.pointerId);
     if (touch) hovered.current = false;
   }
 
+  function handleLostPointerCapture() {
+    clearLongPress();
+    drag.current.active = false;
+    if (touch) hovered.current = false;
+  }
+
   function handleClick() {
+    if (drag.current.longPressed) {
+      drag.current.longPressed = false;
+      return;
+    }
     if (drag.current.travel > 8) return;
-    pulse.current = 1;
+    triggerPulse(true);
 
     const now = performance.now();
+    if (now - lastTap.current < 340) {
+      // Consume the pair even during the cooldown so a rapid tap burst cannot
+      // be reinterpreted as several consecutive material changes.
+      lastTap.current = 0;
+      const transition = materialTransition.current;
+      const specialModeActive =
+        underworld || performance.now() < awakenedUntil.current;
+      const canChangeMaterial =
+        !specialModeActive &&
+        transition.progress >= 0.92 &&
+        now - lastMaterialChange.current >= MATERIAL_CHANGE_COOLDOWN_MS;
+
+      if (canChangeMaterial) {
+        // Red is exclusive to Underworld/long press. Regular double taps only
+        // alternate between obsidian and liquid gold.
+        const nextMode = transition.to === 0 ? 1 : 0;
+        transition.from = transition.to;
+        transition.to = nextMode;
+        transition.progress = 0;
+        lastMaterialChange.current = now;
+        navigator.vibrate?.([10, 24, 10]);
+      }
+    } else {
+      lastTap.current = now;
+    }
+
     const recent = clickTimes.current.filter((time) => now - time < 2000);
     recent.push(now);
     clickTimes.current = recent;
     if (recent.length >= 5) {
       clickTimes.current = [];
+      lastTap.current = 0;
+      lastMaterialChange.current = now;
       console.warn(
         '%c🔥 A fita não tem começo nem fim. Digite "hades" (fora de um campo) para descer ao submundo.',
         "color:#e8a33d",
@@ -530,26 +999,62 @@ export function LiquidObsidianMobius({
 
   return (
     <Float
-      speed={frozen ? 0 : underworld ? 2.15 : 1.15}
-      rotationIntensity={frozen ? 0 : underworld ? 0.16 : 0.09}
-      floatIntensity={frozen ? 0 : underworld ? 0.36 : 0.25}
+      speed={
+        frozen ? 0 : underworld ? (touch ? 1.65 : 2.15) : touch ? 0.85 : 1.15
+      }
+      rotationIntensity={
+        frozen ? 0 : underworld ? (touch ? 0.11 : 0.16) : touch ? 0.055 : 0.09
+      }
+      floatIntensity={
+        frozen ? 0 : underworld ? (touch ? 0.28 : 0.36) : touch ? 0.18 : 0.25
+      }
     >
       <group
         ref={groupRef}
         rotation={[0.7, -0.34, -0.14]}
-        scale={touch ? 1.18 : 1}
+        scale={touch ? 1.04 : 1}
       >
-        <group ref={sculptureRef}>
-          <mesh geometry={geometry} raycast={() => null}>
-            <shaderMaterial
-              ref={materialRef}
-              uniforms={uniforms}
-              vertexShader={VERTEX_SHADER}
-              fragmentShader={FRAGMENT_SHADER}
-              side={THREE.DoubleSide}
-            />
-          </mesh>
+        <group ref={scrollGroupRef}>
+          <group ref={sculptureRef}>
+            <mesh geometry={geometry} raycast={() => null}>
+              <shaderMaterial
+                ref={materialRef}
+                uniforms={uniforms}
+                vertexShader={VERTEX_SHADER}
+                fragmentShader={FRAGMENT_SHADER}
+                side={THREE.DoubleSide}
+              />
+            </mesh>
+
+            <points ref={dissolveRef} frustumCulled={false}>
+              <bufferGeometry ref={dissolveGeometryRef} />
+              <pointsMaterial
+                ref={dissolveMaterialRef}
+                size={touch ? 0.042 : 0.032}
+                vertexColors
+                transparent
+                opacity={0}
+                depthWrite={false}
+                toneMapped={false}
+                blending={THREE.AdditiveBlending}
+              />
+            </points>
+          </group>
         </group>
+
+        <points ref={trailRef} frustumCulled={false}>
+          <bufferGeometry ref={trailGeometryRef} />
+          <pointsMaterial
+            ref={trailMaterialRef}
+            size={touch ? 0.05 : 0.036}
+            vertexColors
+            transparent
+            opacity={0.92}
+            depthWrite={false}
+            toneMapped={false}
+            blending={THREE.AdditiveBlending}
+          />
+        </points>
 
         <mesh
           onPointerOver={() => (hovered.current = true)}
@@ -558,9 +1063,10 @@ export function LiquidObsidianMobius({
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
+          onLostPointerCapture={handleLostPointerCapture}
           onClick={handleClick}
         >
-          <sphereGeometry args={[1.62, 24, 18]} />
+          <sphereGeometry args={[1.72, 24, 18]} />
           <meshBasicMaterial transparent opacity={0.001} depthWrite={false} />
         </mesh>
       </group>
