@@ -521,6 +521,15 @@ interface LiquidObsidianMobiusProps {
   underworld?: boolean;
   /** Hides the mobile gesture hint after the first direct manipulation. */
   onFirstInteraction?: () => void;
+  /** Projects the sculpture's moving highlight into the surrounding hero. */
+  onLightChange?: (state: MobiusLightState) => void;
+}
+
+export interface MobiusLightState {
+  x: number;
+  y: number;
+  energy: number;
+  angle: number;
 }
 
 export function LiquidObsidianMobius({
@@ -529,6 +538,7 @@ export function LiquidObsidianMobius({
   touch = false,
   underworld = false,
   onFirstInteraction,
+  onLightChange,
 }: LiquidObsidianMobiusProps) {
   const groupRef = useRef<THREE.Group>(null);
   const scrollGroupRef = useRef<THREE.Group>(null);
@@ -554,6 +564,7 @@ export function LiquidObsidianMobius({
   const firstInteractionSent = useRef(false);
   const scrollTarget = useRef(0);
   const lastDissolve = useRef(Number.NEGATIVE_INFINITY);
+  const lastLightUpdate = useRef(0);
   const materialTransition = useRef({ from: 0, to: 0, progress: 1 });
   const deviceTilt = useRef({ x: 0, y: 0 });
   const orientationBaseline = useRef<{ beta: number; gamma: number } | null>(
@@ -794,6 +805,32 @@ export function LiquidObsidianMobius({
         1 + livingScale * (1.12 + aggression * 0.42),
         1 - livingScale * (0.46 + aggression * 0.28),
       );
+    }
+
+    const lightNow = performance.now();
+    if (
+      onLightChange &&
+      lightNow - lastLightUpdate.current >= (touch ? 80 : 50)
+    ) {
+      lastLightUpdate.current = lightNow;
+      const orbit =
+        sculpture.rotation.z +
+        group.rotation.y * 0.62 +
+        group.rotation.x * 0.24;
+      onLightChange({
+        x: touch ? 50 + Math.sin(orbit) * 9 : 62 + Math.sin(orbit) * 8,
+        y: touch ? 64 + Math.cos(orbit * 0.82) * 6 : 50 + Math.cos(orbit) * 7,
+        energy: clamp(
+          0.46 +
+            (hovered.current || dragState.active ? 0.2 : 0) +
+            pulse.current * 0.2 +
+            spinEnergy.current * 0.16 +
+            aggression * 0.14,
+          0,
+          1,
+        ),
+        angle: (orbit * 180) / Math.PI,
+      });
     }
 
     const trailField = trailFieldRef.current;

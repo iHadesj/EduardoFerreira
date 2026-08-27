@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { useTheme } from "next-themes";
 import { Flame, Menu, X } from "lucide-react";
@@ -165,14 +166,27 @@ function MobileUnderworldGate({ onComplete }: { onComplete: () => void }) {
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
+  const mounted = useMounted();
   const scrollTo = useSmoothScroll();
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const root = document.documentElement;
+    const body = document.body;
+    const scrollY = window.scrollY;
+    const previousRootOverflow = root.style.overflow;
+    const previousBodyOverflow = body.style.overflow;
+    const previousBodyPosition = body.style.position;
+    const previousBodyTop = body.style.top;
+    const previousBodyWidth = body.style.width;
+
+    root.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.width = "100%";
 
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -202,7 +216,12 @@ export function MobileNav() {
     panelRef.current?.querySelector<HTMLElement>("a, button")?.focus();
 
     return () => {
-      document.body.style.overflow = previousOverflow;
+      root.style.overflow = previousRootOverflow;
+      body.style.overflow = previousBodyOverflow;
+      body.style.position = previousBodyPosition;
+      body.style.top = previousBodyTop;
+      body.style.width = previousBodyWidth;
+      window.scrollTo(0, scrollY);
       document.removeEventListener("keydown", onKey);
       trigger?.focus();
     };
@@ -227,54 +246,61 @@ export function MobileNav() {
         <Menu size={18} strokeWidth={1.5} />
       </button>
 
-      <AnimatePresence>
-        {open ? (
-          <motion.div
-            ref={panelRef}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Menu de navegação"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="bg-abyss/98 fixed inset-0 z-[var(--z-nav)] flex flex-col backdrop-blur-md md:hidden"
-          >
-            <div className="container-hades flex h-16 items-center justify-end">
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                aria-label="Fechar menu"
-                className="rounded-pill border-ash text-smoke hover:border-molten hover:text-bone inline-flex size-9 items-center justify-center border"
-              >
-                <X size={18} strokeWidth={1.5} />
-              </button>
-            </div>
-            <motion.ul
-              variants={staggerContainer}
-              initial="hidden"
-              animate="visible"
-              className="container-hades flex flex-1 flex-col justify-center gap-2"
-            >
-              {navItems.map((item) => (
-                <motion.li key={item.id} variants={fadeUpItem}>
-                  <a
-                    href={item.href}
-                    onClick={(event) => {
-                      event.preventDefault();
-                      go(item.href);
-                    }}
-                    className="font-display text-bone hover:text-molten text-4xl transition-colors"
+      {mounted
+        ? createPortal(
+            <AnimatePresence>
+              {open ? (
+                <motion.div
+                  key="mobile-navigation"
+                  ref={panelRef}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Menu de navegação"
+                  data-lenis-prevent
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="bg-abyss fixed inset-0 z-[var(--z-palette)] isolate flex h-dvh min-h-dvh w-full flex-col overflow-y-auto overscroll-contain md:hidden"
+                >
+                  <div className="container-hades flex h-16 shrink-0 items-center justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setOpen(false)}
+                      aria-label="Fechar menu"
+                      className="rounded-pill border-ash text-smoke hover:border-molten hover:text-bone inline-flex size-9 items-center justify-center border"
+                    >
+                      <X size={18} strokeWidth={1.5} />
+                    </button>
+                  </div>
+                  <motion.ul
+                    variants={staggerContainer}
+                    initial="hidden"
+                    animate="visible"
+                    className="container-hades flex flex-1 flex-col justify-center gap-2"
                   >
-                    {item.label.pt}
-                  </a>
-                </motion.li>
-              ))}
-            </motion.ul>
-            <MobileUnderworldGate onComplete={() => setOpen(false)} />
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+                    {navItems.map((item) => (
+                      <motion.li key={item.id} variants={fadeUpItem}>
+                        <a
+                          href={item.href}
+                          onClick={(event) => {
+                            event.preventDefault();
+                            go(item.href);
+                          }}
+                          className="font-display text-bone hover:text-molten text-4xl transition-colors"
+                        >
+                          {item.label.pt}
+                        </a>
+                      </motion.li>
+                    ))}
+                  </motion.ul>
+                  <MobileUnderworldGate onComplete={() => setOpen(false)} />
+                </motion.div>
+              ) : null}
+            </AnimatePresence>,
+            document.body,
+          )
+        : null}
     </>
   );
 }

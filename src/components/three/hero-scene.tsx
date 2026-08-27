@@ -4,6 +4,7 @@ import { useState } from "react";
 import { PerformanceMonitor } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { LiquidObsidianMobius } from "./liquid-obsidian-mobius";
+import type { MobiusLightState } from "./liquid-obsidian-mobius";
 
 /** "full" = pointer-driven desktop scene; "lite" = touch-driven phone scene. */
 export type SceneTier = "full" | "lite";
@@ -24,6 +25,7 @@ interface HeroSceneProps {
   underworld: boolean;
   onReady?: () => void;
   onFirstInteraction?: () => void;
+  onLightChange?: (state: MobiusLightState) => void;
 }
 
 export function HeroScene({
@@ -33,6 +35,7 @@ export function HeroScene({
   underworld,
   onReady,
   onFirstInteraction,
+  onLightChange,
 }: HeroSceneProps) {
   const [degrade, setDegrade] = useState(0);
   const frozen = degrade >= 2;
@@ -67,6 +70,7 @@ export function HeroScene({
           touch={tier === "lite"}
           underworld={underworld}
           onFirstInteraction={onFirstInteraction}
+          onLightChange={onLightChange}
         />
       </PerformanceMonitor>
     </Canvas>

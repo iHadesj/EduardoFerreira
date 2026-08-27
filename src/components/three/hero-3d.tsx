@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useTheme } from "next-themes";
 import { HeroPoster } from "./hero-poster";
 import type { SceneTier } from "./hero-scene";
+import type { MobiusLightState } from "./liquid-obsidian-mobius";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { useMounted } from "@/hooks/use-mounted";
 import { useReducedMotionSafe } from "@/hooks/use-reduced-motion-safe";
@@ -76,6 +77,7 @@ export function Hero3D({ className }: { className?: string }) {
   const themeMounted = useMounted();
   const underworld = themeMounted && theme === "underworld";
   const containerRef = useRef<HTMLDivElement>(null);
+  const lightHostRef = useRef<HTMLElement | null>(null);
   const [enabled, setEnabled] = useState(false);
   const [tier, setTier] = useState<SceneTier>("full");
   const [highDpr, setHighDpr] = useState(false);
@@ -188,6 +190,42 @@ export function Hero3D({ className }: { className?: string }) {
     }
   }
 
+  function handleLightChange({ x, y, energy, angle }: MobiusLightState) {
+    const host =
+      lightHostRef.current ??
+      (containerRef.current?.closest("#hero") as HTMLElement | null);
+    if (!host) return;
+    lightHostRef.current = host;
+    host.style.setProperty("--mobius-light-x", `${x.toFixed(2)}%`);
+    host.style.setProperty("--mobius-light-y", `${y.toFixed(2)}%`);
+    host.style.setProperty("--mobius-light-energy", energy.toFixed(3));
+    host.style.setProperty("--mobius-light-angle", `${angle.toFixed(2)}deg`);
+    host.style.setProperty(
+      "--mobius-aura-opacity",
+      (0.62 + energy * 0.38).toFixed(3),
+    );
+    host.style.setProperty(
+      "--mobius-caustic-opacity",
+      (0.3 + energy * 0.42).toFixed(3),
+    );
+    host.style.setProperty(
+      "--mobius-title-opacity",
+      (0.16 + energy * 0.5).toFixed(3),
+    );
+    host.style.setProperty(
+      "--mobius-title-blur",
+      `${(5 + energy * 10).toFixed(2)}px`,
+    );
+    host.style.setProperty(
+      "--mobius-cta-blur",
+      `${(3 + energy * 10).toFixed(2)}px`,
+    );
+    host.style.setProperty(
+      "--mobius-social-blur",
+      `${(2 + energy * 8).toFixed(2)}px`,
+    );
+  }
+
   // `reduced` flips to true one tick after hydration. The effect above cancels
   // the pending idle callback, but deriving here also covers the race where it
   // already fired — reduced motion never keeps a live canvas.
@@ -210,7 +248,11 @@ export function Hero3D({ className }: { className?: string }) {
       {showScene ? (
         <div
           className={cn(
-            "absolute inset-0 transition-opacity duration-500",
+            "absolute inset-y-0 transition-opacity duration-500",
+            // A wider render surface expands the camera's horizontal frustum
+            // without changing the sculpture's on-screen size. This prevents
+            // fast rotations from exposing the hard edge of the WebGL canvas.
+            tier === "full" ? "inset-x-[-24%]" : "inset-x-[-12%]",
             ready ? "opacity-100" : "opacity-0",
           )}
         >
@@ -222,6 +264,7 @@ export function Hero3D({ className }: { className?: string }) {
               underworld={underworld}
               onReady={() => setReady(true)}
               onFirstInteraction={handleFirstInteraction}
+              onLightChange={handleLightChange}
             />
           </ErrorBoundary>
         </div>

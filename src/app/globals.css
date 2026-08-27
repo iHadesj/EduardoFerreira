@@ -192,14 +192,14 @@
   background:
     radial-gradient(
       circle at 50% 47%,
-      color-mix(in oklab, var(--color-molten) 32%, transparent) 0%,
-      color-mix(in oklab, var(--color-molten) 13%, transparent) 38%,
-      transparent 68%
+      color-mix(in oklab, var(--color-molten) 46%, transparent) 0%,
+      color-mix(in oklab, var(--color-molten) 20%, transparent) 39%,
+      transparent 72%
     ),
     radial-gradient(
       ellipse at 52% 54%,
-      color-mix(in oklab, var(--color-styx) 10%, transparent),
-      transparent 72%
+      color-mix(in oklab, var(--color-styx) 14%, transparent),
+      transparent 76%
     );
 }
 
@@ -223,10 +223,302 @@
   .mobius-ambient-glow {
     background: radial-gradient(
       circle at 50% 46%,
-      color-mix(in oklab, var(--color-molten) 18%, transparent) 0%,
-      color-mix(in oklab, var(--color-molten) 6%, transparent) 34%,
-      transparent 60%
+      color-mix(in oklab, var(--color-molten) 30%, transparent) 0%,
+      color-mix(in oklab, var(--color-molten) 11%, transparent) 36%,
+      transparent 66%
     );
+  }
+}
+
+/* Hero signature: the sculpture projects a throttled light state into CSS.
+   The WebGL canvas never triggers React renders while these values move. */
+#hero {
+  --mobius-light-x: 50%;
+  --mobius-light-y: 64%;
+  --mobius-light-energy: 0.46;
+  --mobius-light-angle: 0deg;
+  --mobius-aura-opacity: 0.79;
+  --mobius-caustic-opacity: 0.49;
+  --mobius-title-opacity: 0.39;
+  --mobius-title-blur: 10px;
+  --mobius-cta-blur: 8px;
+  --mobius-social-blur: 5px;
+}
+
+.hero-reactive-aura {
+  opacity: var(--mobius-aura-opacity);
+  background:
+    radial-gradient(
+      circle at var(--mobius-light-x) var(--mobius-light-y),
+      color-mix(in oklab, var(--color-molten) 34%, transparent) 0%,
+      color-mix(in oklab, var(--color-molten) 15%, transparent) 17%,
+      transparent 46%
+    ),
+    radial-gradient(
+      ellipse 54% 28% at var(--mobius-light-x) var(--mobius-light-y),
+      color-mix(in oklab, var(--color-styx) 13%, transparent),
+      transparent 70%
+    );
+  transition: opacity 90ms linear;
+}
+
+.hero-reactive-caustics {
+  opacity: var(--mobius-caustic-opacity);
+  background:
+    radial-gradient(
+      ellipse 34% 8% at var(--mobius-light-x) var(--mobius-light-y),
+      color-mix(in oklab, var(--color-bone) 11%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 23% 15% at calc(var(--mobius-light-x) - 7%)
+        calc(var(--mobius-light-y) + 5%),
+      color-mix(in oklab, var(--color-molten) 17%, transparent),
+      transparent 75%
+    );
+  mix-blend-mode: screen;
+  transition: opacity 90ms linear;
+}
+
+.hero-title-light {
+  color: transparent;
+  opacity: var(--mobius-title-opacity);
+  background: radial-gradient(
+    circle at var(--mobius-light-x) 50%,
+    var(--color-bone) 0%,
+    var(--color-molten) 24%,
+    transparent 66%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  mix-blend-mode: screen;
+  filter: drop-shadow(
+    0 0 var(--mobius-title-blur)
+      color-mix(in oklab, var(--color-molten) 34%, transparent)
+  );
+}
+
+.hero-light-cta {
+  filter: drop-shadow(
+    0 0 var(--mobius-cta-blur)
+      color-mix(in oklab, var(--color-molten) 24%, transparent)
+  );
+}
+
+.hero-light-social {
+  box-shadow: 0 0 var(--mobius-social-blur)
+    color-mix(in oklab, var(--color-molten) 12%, transparent);
+}
+
+.hero-intro-drawing,
+.hero-form-thread,
+.hero-form-loop {
+  opacity: 0;
+}
+
+#hero[data-signature-intro="settled"]
+  :is(.hero-intro-drawing, .hero-form-thread, .hero-form-loop) {
+  opacity: 0 !important;
+  animation: none !important;
+}
+
+#hero[data-signature-intro="pending"] .hero-intro-copy > * {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+#hero[data-signature-intro="pending"] .hero-intro-sculpture-canvas {
+  opacity: 0;
+  clip-path: circle(0% at 50% 50%);
+}
+
+#hero[data-signature-intro="running"] .hero-intro-copy > * {
+  animation: hero-copy-arrival 720ms var(--ease-out-expo) both;
+}
+
+#hero[data-signature-intro="running"] .hero-intro-copy > :nth-child(2) {
+  animation-delay: 80ms;
+}
+
+#hero[data-signature-intro="running"] .hero-intro-copy > :nth-child(3) {
+  animation-delay: 150ms;
+}
+
+#hero[data-signature-intro="running"] .hero-intro-copy > :nth-child(4) {
+  animation-delay: 220ms;
+}
+
+#hero[data-signature-intro="running"] .hero-intro-copy > :nth-child(5) {
+  animation-delay: 290ms;
+}
+
+#hero[data-signature-intro="running"] .hero-intro-sculpture-canvas {
+  animation: hero-sculpture-form 1450ms 980ms var(--ease-out-expo) both;
+}
+
+#hero[data-signature-intro="running"] .hero-intro-drawing {
+  animation: hero-monogram-lifecycle 2480ms 60ms var(--ease-out-soft) both;
+}
+
+#hero[data-signature-intro="running"] .hero-intro-drawing path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: hero-signature-draw 520ms 100ms var(--ease-out-expo) forwards;
+}
+
+#hero[data-signature-intro="running"] .hero-form-thread {
+  animation: hero-thread-flight 1050ms 430ms var(--ease-out-soft) both;
+}
+
+#hero[data-signature-intro="running"] .hero-form-thread-glow {
+  animation-delay: 400ms;
+}
+
+#hero[data-signature-intro="running"] .hero-form-loop {
+  animation: hero-loop-form 1400ms 1080ms var(--ease-out-expo) both;
+}
+
+#hero[data-signature-intro="running"] .hero-form-loop-glow {
+  animation-delay: 1040ms;
+}
+
+#hero[data-signature-intro="running"] .hero-title-light {
+  animation: hero-title-reflection 900ms 1180ms var(--ease-out-expo) both;
+}
+
+@keyframes hero-signature-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes hero-copy-arrival {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes hero-monogram-lifecycle {
+  0% {
+    opacity: 0;
+  }
+
+  10%,
+  66% {
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  100% {
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+@keyframes hero-thread-flight {
+  0% {
+    opacity: 0;
+    stroke-dasharray: 0.18 1;
+    stroke-dashoffset: 1;
+  }
+
+  12%,
+  78% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    stroke-dasharray: 0.18 1;
+    stroke-dashoffset: -0.18;
+  }
+}
+
+@keyframes hero-loop-form {
+  0% {
+    opacity: 0;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+
+  14% {
+    opacity: 1;
+  }
+
+  72% {
+    opacity: 0.92;
+    stroke-dashoffset: 0;
+  }
+
+  100% {
+    opacity: 0;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes hero-sculpture-form {
+  0% {
+    opacity: 0;
+    clip-path: circle(0% at 50% 50%);
+  }
+
+  28% {
+    opacity: 0.82;
+    clip-path: circle(18% at 50% 50%);
+  }
+
+  68% {
+    opacity: 1;
+    clip-path: circle(62% at 50% 50%);
+  }
+
+  100% {
+    opacity: 1;
+    clip-path: circle(100% at 50% 50%);
+  }
+}
+
+@keyframes hero-title-reflection {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+    filter: brightness(0.8);
+  }
+  48% {
+    opacity: 1;
+    filter: brightness(1.8);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@media (min-width: 64rem) {
+  #hero {
+    --mobius-light-x: 62%;
+    --mobius-light-y: 50%;
+  }
+
+  .hero-reactive-aura {
+    background:
+      radial-gradient(
+        circle at var(--mobius-light-x) var(--mobius-light-y),
+        color-mix(in oklab, var(--color-molten) 29%, transparent) 0%,
+        color-mix(in oklab, var(--color-molten) 12%, transparent) 17%,
+        transparent 43%
+      ),
+      radial-gradient(
+        ellipse 45% 30% at var(--mobius-light-x) var(--mobius-light-y),
+        color-mix(in oklab, var(--color-styx) 10%, transparent),
+        transparent 68%
+      );
   }
 }
 
