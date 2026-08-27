@@ -77,7 +77,7 @@ function MobileUnderworldGate({ onComplete }: { onComplete: () => void }) {
       className="container-hades pb-8"
     >
       <div className="border-ash bg-basalt/35 rounded-lg border p-3">
-        <p className="text-ember mb-2 font-mono text-[0.625rem] tracking-[0.18em] uppercase opacity-75">
+        <p className="text-ember mb-2 font-mono text-[0.625rem] tracking-[0.18em] uppercase opacity-75 select-none">
           {"// eco encontrado"}
         </p>
         <button
@@ -248,58 +248,58 @@ export function MobileNav() {
 
       {mounted
         ? createPortal(
-            <AnimatePresence>
-              {open ? (
-                <motion.div
-                  key="mobile-navigation"
-                  ref={panelRef}
-                  role="dialog"
-                  aria-modal="true"
-                  aria-label="Menu de navegação"
-                  data-lenis-prevent
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.25 }}
-                  className="bg-abyss fixed inset-0 z-[var(--z-palette)] isolate flex h-dvh min-h-dvh w-full flex-col overflow-y-auto overscroll-contain md:hidden"
-                >
-                  <div className="container-hades flex h-16 shrink-0 items-center justify-end">
-                    <button
-                      type="button"
-                      onClick={() => setOpen(false)}
-                      aria-label="Fechar menu"
-                      className="rounded-pill border-ash text-smoke hover:border-molten hover:text-bone inline-flex size-9 items-center justify-center border"
-                    >
-                      <X size={18} strokeWidth={1.5} />
-                    </button>
-                  </div>
-                  <motion.ul
-                    variants={staggerContainer}
-                    initial="hidden"
-                    animate="visible"
-                    className="container-hades flex flex-1 flex-col justify-center gap-2"
+          <AnimatePresence>
+            {open ? (
+              <motion.div
+                key="mobile-navigation"
+                ref={panelRef}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Menu de navegação"
+                data-lenis-prevent
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="bg-abyss fixed inset-0 z-[var(--z-palette)] isolate flex h-dvh min-h-dvh w-full flex-col overflow-y-auto overscroll-contain md:hidden"
+              >
+                <div className="container-hades flex h-16 shrink-0 items-center justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setOpen(false)}
+                    aria-label="Fechar menu"
+                    className="rounded-pill border-ash text-smoke hover:border-molten hover:text-bone inline-flex size-9 items-center justify-center border"
                   >
-                    {navItems.map((item) => (
-                      <motion.li key={item.id} variants={fadeUpItem}>
-                        <a
-                          href={item.href}
-                          onClick={(event) => {
-                            event.preventDefault();
-                            go(item.href);
-                          }}
-                          className="font-display text-bone hover:text-molten text-4xl transition-colors"
-                        >
-                          {item.label.pt}
-                        </a>
-                      </motion.li>
-                    ))}
-                  </motion.ul>
-                  <MobileUnderworldGate onComplete={() => setOpen(false)} />
-                </motion.div>
-              ) : null}
-            </AnimatePresence>,
-            document.body,
-          )
+                    <X size={18} strokeWidth={1.5} />
+                  </button>
+                </div>
+                <motion.ul
+                  variants={staggerContainer}
+                  initial="hidden"
+                  animate="visible"
+                  className="container-hades flex flex-1 flex-col justify-center gap-2"
+                >
+                  {navItems.map((item) => (
+                    <motion.li key={item.id} variants={fadeUpItem}>
+                      <a
+                        href={item.href}
+                        onClick={(event) => {
+                          event.preventDefault();
+                          go(item.href);
+                        }}
+                        className="font-display text-bone hover:text-molten text-4xl transition-colors"
+                      >
+                        {item.label.pt}
+                      </a>
+                    </motion.li>
+                  ))}
+                </motion.ul>
+                <MobileUnderworldGate onComplete={() => setOpen(false)} />
+              </motion.div>
+            ) : null}
+          </AnimatePresence>,
+          document.body,
+        )
         : null}
     </>
   );
