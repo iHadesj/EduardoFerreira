@@ -14,7 +14,8 @@ export interface NavItem {
 export const siteConfig = {
   name: "Edu Ferreira",
   handle: "iHadesj",
-  // Public-facing contact e-mail — TODO_EDU: confirmar endereço real (Fase 11).
+  // Public-facing contact e-mail. Doubles as the default CONTACT_EMAIL inbox
+  // for the contact form (see src/lib/env.ts).
   email: "edualexandre2017@outlook.com",
   // Canonical production URL — placeholder domain until Fase 11.
   url: "https://edu-ferreira-zeta.vercel.app",
@@ -40,7 +41,7 @@ export const siteConfig = {
     github: "https://github.com/iHadesj",
     linkedin: "https://www.linkedin.com/in/eduardoalexandre-java/",
     // `mailto:` is required — these values are used directly as anchor hrefs.
-    email: "mailto:edualexandre2017@outlook.com", // TODO_EDU: confirmar e-mail
+    email: "mailto:edualexandre2017@outlook.com",
   },
 } as const;
 

@@ -45,7 +45,13 @@ export function HeroScene({
       }}
       frameloop={active ? "always" : "never"}
       onCreated={() => onReady?.()}
-      style={{ width: "100%", height: "100%" }}
+      style={{
+        width: "100%",
+        height: "100%",
+        // Preserve vertical page scrolling while reserving horizontal swipes
+        // for rotating the sculpture on touch-first devices.
+        touchAction: tier === "lite" ? "pan-y" : "auto",
+      }}
     >
       <PerformanceMonitor
         onDecline={() => setDegrade((value) => Math.min(2, value + 1))}

@@ -388,32 +388,39 @@ export function LiquidObsidianMobius({
 
     if (!frozen) {
       elapsed.current += delta * (1 + aggression * 0.42);
+    }
 
-      if (!dragState.active) {
-        offset.current.x = clamp(
-          offset.current.x + velocity.current.x,
-          -0.38,
-          0.38,
-        );
-        offset.current.y += velocity.current.y;
-        const decay = Math.pow(0.91, delta * 60);
-        velocity.current.x *= decay;
-        velocity.current.y *= decay;
-        offset.current.x += (0 - offset.current.x) * Math.min(1, delta * 0.9);
-        offset.current.y += (0 - offset.current.y) * Math.min(1, delta * 0.18);
-      }
+    // Performance degradation may pause the ornamental animation, but direct
+    // manipulation must stay responsive on lower-powered Android devices.
+    if (!dragState.active) {
+      offset.current.x = clamp(
+        offset.current.x + velocity.current.x,
+        -0.38,
+        0.38,
+      );
+      offset.current.y += velocity.current.y;
+      const decay = Math.pow(0.91, delta * 60);
+      velocity.current.x *= decay;
+      velocity.current.y *= decay;
+      offset.current.x += (0 - offset.current.x) * Math.min(1, delta * 0.9);
+      offset.current.y += (0 - offset.current.y) * Math.min(1, delta * 0.18);
+    }
 
-      const pointerTiltX = touch ? 0 : pointer.y * 0.14;
-      const pointerTiltY = touch ? 0 : pointer.x * 0.2;
-      const targetX = 0.7 + pointerTiltX + offset.current.x;
-      const targetY = -0.34 + pointerTiltY + offset.current.y;
-      group.rotation.x += (targetX - group.rotation.x) * 0.045;
-      group.rotation.y += (targetY - group.rotation.y) * 0.045;
-      const targetPositionX = touch ? 0 : pointer.x * 0.12;
-      const targetPositionY = touch ? -0.1 : pointer.y * 0.09;
-      group.position.x += (targetPositionX - group.position.x) * 0.035;
-      group.position.y += (targetPositionY - group.position.y) * 0.035;
+    const pointerTiltX = touch ? 0 : pointer.y * 0.14;
+    const pointerTiltY = touch ? 0 : pointer.x * 0.2;
+    const targetX = 0.7 + pointerTiltX + offset.current.x;
+    const targetY = -0.34 + pointerTiltY + offset.current.y;
+    const rotationResponse =
+      1 - Math.exp(-delta * (touch && dragState.active ? 13 : 2.8));
+    group.rotation.x += (targetX - group.rotation.x) * rotationResponse;
+    group.rotation.y += (targetY - group.rotation.y) * rotationResponse;
+    const targetPositionX = touch ? 0 : pointer.x * 0.12;
+    const targetPositionY = touch ? 0 : pointer.y * 0.09;
+    const positionResponse = 1 - Math.exp(-delta * 2.15);
+    group.position.x += (targetPositionX - group.position.x) * positionResponse;
+    group.position.y += (targetPositionY - group.position.y) * positionResponse;
 
+    if (!frozen) {
       const breath = Math.sin(elapsed.current * 1.38);
       const undertow = Math.sin(elapsed.current * 0.57 + 1.4);
       const predatorPulse = Math.sin(
@@ -467,6 +474,8 @@ export function LiquidObsidianMobius({
   function handlePointerDown(event: ThreeEvent<PointerEvent>) {
     event.stopPropagation();
     (event.target as Element).setPointerCapture?.(event.pointerId);
+    hovered.current = true;
+    pulse.current = Math.max(pulse.current, 0.3);
     drag.current = {
       active: true,
       x: event.clientX,
@@ -487,8 +496,8 @@ export function LiquidObsidianMobius({
     dragState.y = event.clientY;
     dragState.travel += Math.abs(dx) + Math.abs(dy);
 
-    const yaw = dx * 0.0045;
-    const tilt = dy * 0.0032;
+    const yaw = dx * (touch ? 0.0062 : 0.0045);
+    const tilt = dy * (touch ? 0.0044 : 0.0032);
     offset.current.y += yaw;
     offset.current.x = clamp(offset.current.x + tilt, -0.38, 0.38);
     velocity.current.y = yaw;
@@ -528,7 +537,7 @@ export function LiquidObsidianMobius({
       <group
         ref={groupRef}
         rotation={[0.7, -0.34, -0.14]}
-        scale={touch ? 1.04 : 1}
+        scale={touch ? 1.18 : 1}
       >
         <group ref={sculptureRef}>
           <mesh geometry={geometry} raycast={() => null}>

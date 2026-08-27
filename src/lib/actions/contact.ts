@@ -66,11 +66,12 @@ export async function submitContact(
   const { name, email, message } = parsed.data;
 
   // No key in dev → log and simulate success so onboarding never breaks.
-  if (!env.RESEND_API_KEY || !env.CONTACT_EMAIL) {
-    console.warn("[contact] sem RESEND_API_KEY — simulando envio:", {
-      name,
-      email,
-    });
+  // NOTE: nothing is actually delivered in this branch.
+  if (!env.RESEND_API_KEY) {
+    console.warn(
+      `[contact] RESEND_API_KEY ausente — NENHUM e-mail foi enviado para ${env.CONTACT_EMAIL}. Envio simulado:`,
+      { name, email },
+    );
     return {
       status: "success",
       message: "Mensagem enviada (modo dev). Respondo em até 48h.",

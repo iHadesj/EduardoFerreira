@@ -1,3 +1,14 @@
 /.next
-/.next
 /node_modules
+/.velite
+/out
+/build
+
+# Env — secrets never get committed. `.env.example` is the documented template.
+.env
+.env.*
+!.env.example
+
+# Misc
+*.tsbuildinfo
+.DS_Store

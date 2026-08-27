@@ -107,7 +107,7 @@ export function Hero() {
         </div>
 
         <div className="mt-3 sm:mt-0 lg:col-span-5 lg:overflow-visible">
-          <Hero3D className="mx-auto aspect-[4/3] w-[104%] max-w-md -translate-x-[8%] sm:aspect-square sm:w-full sm:translate-x-0 lg:w-[130%] lg:max-w-none lg:-translate-x-[10%]" />
+          <Hero3D className="mx-auto aspect-square w-full max-w-[26rem] sm:max-w-md lg:w-[130%] lg:max-w-none lg:-translate-x-[10%]" />
         </div>
       </div>
 
