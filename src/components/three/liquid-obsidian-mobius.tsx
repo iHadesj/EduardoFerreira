@@ -366,129 +366,6 @@ const FRAGMENT_SHADER = /* glsl */ `
   }
 `;
 
-// Keeps every material/interaction state while cutting nested trigonometry,
-// derivative normals and a second specular pass on budget Android GPUs.
-const ECONOMY_FRAGMENT_SHADER = /* glsl */ `
-  uniform float uActivity;
-  uniform float uImpact;
-  uniform float uModeFrom;
-  uniform float uModeProgress;
-  uniform float uModeTo;
-  uniform float uScrollProgress;
-  uniform float uSpinEnergy;
-  uniform float uTime;
-  uniform float uUnderworld;
-
-  varying float vDeformation;
-  varying float vInteraction;
-  varying vec2 vLoop;
-  varying vec3 vWorldNormal;
-  varying vec3 vWorldPosition;
-  varying vec2 vUv;
-
-  void main() {
-    vec3 viewDirection = normalize(cameraPosition - vWorldPosition);
-    vec3 normal = faceforward(normalize(vWorldNormal), -viewDirection, vWorldNormal);
-    float facing = max(dot(normal, viewDirection), 0.0);
-    float fresnel = pow(1.0 - facing, 2.0);
-
-    float transitionEdge = uModeProgress * 1.3 - 0.15;
-    float materialWave = 1.0 - smoothstep(
-      transitionEdge - 0.09,
-      transitionEdge + 0.09,
-      vUv.x
-    );
-    float materialMode = mix(uModeFrom, uModeTo, materialWave);
-    float requestedGoldMode = clamp(1.0 - abs(materialMode - 1.0), 0.0, 1.0);
-    float emberMode = smoothstep(1.05, 2.0, materialMode);
-    float worldMode = max(uUnderworld, emberMode);
-    float goldMode = requestedGoldMode * (1.0 - worldMode);
-
-    float loopAngle = atan(vLoop.y, vLoop.x);
-    float liquidBand = sin(
-      loopAngle * mix(2.0, 3.0, worldMode) -
-      uTime * mix(0.9, 2.35, worldMode) +
-      vUv.y * 9.4248
-    ) * 0.5 + 0.5;
-    liquidBand = smoothstep(0.46, 0.94, liquidBand);
-
-    float edgeDistance = abs(cos(vUv.y * 6.2832));
-    float goldEdge = smoothstep(0.9, 0.99, edgeDistance);
-    vec2 glintDirection = vec2(cos(uTime * 0.72), sin(uTime * 0.72));
-    float travelingGlint = smoothstep(
-      0.68,
-      1.0,
-      dot(normalize(vLoop), glintDirection)
-    );
-    vec3 sweepDirection = normalize(vec3(sin(uTime * 0.6), 0.68, 1.25));
-    float specular = pow(max(
-      dot(reflect(-sweepDirection, normal), viewDirection),
-      0.0
-    ), 20.0);
-
-    vec3 obsidian = mix(
-      vec3(0.006, 0.005, 0.009),
-      vec3(0.0015, 0.0002, 0.0005),
-      worldMode
-    );
-    vec3 graphite = mix(
-      vec3(0.055, 0.065, 0.075),
-      vec3(0.052, 0.0025, 0.007),
-      worldMode
-    );
-    vec3 reflection = mix(
-      vec3(0.13, 0.34, 0.38),
-      vec3(0.38, 0.006, 0.016),
-      worldMode
-    );
-    vec3 molten = mix(
-      vec3(0.91, 0.54, 0.18),
-      vec3(0.79, 0.018, 0.009),
-      worldMode
-    );
-    vec3 bright = mix(
-      vec3(1.0, 0.76, 0.34),
-      vec3(1.0, 0.075, 0.022),
-      worldMode
-    );
-    obsidian = mix(obsidian, vec3(0.045, 0.018, 0.002), goldMode);
-    graphite = mix(graphite, vec3(0.28, 0.105, 0.012), goldMode);
-    reflection = mix(reflection, vec3(0.98, 0.46, 0.08), goldMode);
-    molten = mix(molten, vec3(1.0, 0.68, 0.14), goldMode);
-    bright = mix(bright, vec3(1.0, 0.93, 0.56), goldMode);
-
-    vec3 color = mix(obsidian, graphite, fresnel * 0.82 + liquidBand * 0.15);
-    color += reflection * fresnel * (0.48 + liquidBand * 0.2);
-    color += molten * liquidBand * fresnel * 0.2;
-    color += mix(reflection, bright, travelingGlint) * specular * 0.88;
-    color += graphite * vDeformation * 0.3;
-    color += bright * vInteraction * (0.27 + fresnel * 0.2);
-    color += bright * worldMode * (uImpact * 0.48 + uSpinEnergy * 0.14);
-    color = mix(
-      color,
-      mix(molten, bright, travelingGlint),
-      goldEdge * (0.7 + travelingGlint * 0.2)
-    );
-
-    if (uScrollProgress > 0.3) {
-      float dissolveAmount = smoothstep(0.3, 0.94, uScrollProgress);
-      float dissolveNoise = fract(sin(dot(
-        floor(vUv * vec2(96.0, 18.0)),
-        vec2(12.9898, 78.233)
-      )) * 43758.5453);
-      if (dissolveNoise < dissolveAmount * 0.94) discard;
-      float dissolveEdge = 1.0 - smoothstep(
-        0.0,
-        0.085,
-        abs(dissolveNoise - dissolveAmount * 0.94)
-      );
-      color += bright * dissolveEdge * dissolveAmount * 0.7;
-    }
-
-    gl_FragColor = vec4(color, 1.0);
-  }
-`;
-
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
 
@@ -634,8 +511,6 @@ function createMobiusGeometry(uSegments: number, vSegments: number) {
 }
 
 interface LiquidObsidianMobiusProps {
-  /** Uses the same interactions with a lower GPU/CPU budget. */
-  economy?: boolean;
   /** Freeze ornamental motion after the final performance degradation step. */
   frozen?: boolean;
   /** Adds geometry only on capable, high-density desktop screens. */
@@ -658,7 +533,6 @@ export interface MobiusLightState {
 }
 
 export function LiquidObsidianMobius({
-  economy = false,
   frozen = false,
   highDetail = false,
   touch = false,
@@ -714,15 +588,13 @@ export function LiquidObsidianMobius({
   const geometry = useMemo(
     () =>
       createMobiusGeometry(
-        economy ? 64 : highDetail ? 180 : touch ? 96 : 120,
-        economy ? 12 : highDetail ? 34 : touch ? 18 : 24,
+        highDetail ? 180 : touch ? 96 : 120,
+        highDetail ? 34 : touch ? 18 : 24,
       ),
-    [economy, highDetail, touch],
+    [highDetail, touch],
   );
-  const trailFieldRef = useRef(createTrailField(economy ? 8 : touch ? 14 : 34));
-  const dissolveFieldRef = useRef(
-    createDissolveField(economy ? 18 : touch ? 36 : 78),
-  );
+  const trailFieldRef = useRef(createTrailField(touch ? 14 : 34));
+  const dissolveFieldRef = useRef(createDissolveField(touch ? 36 : 78));
   const uniforms = useMemo(
     () => ({
       uActivity: { value: 0 },
@@ -938,7 +810,7 @@ export function LiquidObsidianMobius({
     const lightNow = performance.now();
     if (
       onLightChange &&
-      lightNow - lastLightUpdate.current >= (economy ? 125 : touch ? 80 : 50)
+      lightNow - lastLightUpdate.current >= (touch ? 80 : 50)
     ) {
       lastLightUpdate.current = lightNow;
       const orbit =
@@ -1005,8 +877,7 @@ export function LiquidObsidianMobius({
 
     const dissolve = clamp((scroll - 0.18) / 0.82, 0, 1);
     const dissolveField = dissolveFieldRef.current;
-    const dissolveChanged =
-      Math.abs(dissolve - lastDissolve.current) > (economy ? 0.008 : 0.002);
+    const dissolveChanged = Math.abs(dissolve - lastDissolve.current) > 0.002;
     if (dissolveChanged && dissolveRef.current && dissolveMaterialRef.current) {
       for (let index = 0; index < dissolveField.positions.length; index += 1) {
         dissolveField.positions[index] =
@@ -1095,16 +966,13 @@ export function LiquidObsidianMobius({
     );
 
     const aggressiveMode = isAggressiveMode();
-    const requestedEmissionCount = aggressiveMode
+    const emissionCount = aggressiveMode
       ? movement > 8
         ? 3
         : 2
       : movement > 10
         ? 2
         : 1;
-    const emissionCount = economy
-      ? Math.min(2, requestedEmissionCount)
-      : requestedEmissionCount;
     const particleSpeed = aggressiveMode ? 1.65 : 1;
     for (let emission = 0; emission < emissionCount; emission += 1) {
       const trailField = trailFieldRef.current;
@@ -1261,49 +1129,13 @@ export function LiquidObsidianMobius({
   return (
     <Float
       speed={
-        frozen
-          ? 0
-          : economy
-            ? underworld
-              ? 1.25
-              : 0.68
-            : underworld
-              ? touch
-                ? 1.65
-                : 2.15
-              : touch
-                ? 0.85
-                : 1.15
+        frozen ? 0 : underworld ? (touch ? 1.65 : 2.15) : touch ? 0.85 : 1.15
       }
       rotationIntensity={
-        frozen
-          ? 0
-          : economy
-            ? underworld
-              ? 0.085
-              : 0.045
-            : underworld
-              ? touch
-                ? 0.11
-                : 0.16
-              : touch
-                ? 0.055
-                : 0.09
+        frozen ? 0 : underworld ? (touch ? 0.11 : 0.16) : touch ? 0.055 : 0.09
       }
       floatIntensity={
-        frozen
-          ? 0
-          : economy
-            ? underworld
-              ? 0.2
-              : 0.13
-            : underworld
-              ? touch
-                ? 0.28
-                : 0.36
-              : touch
-                ? 0.18
-                : 0.25
+        frozen ? 0 : underworld ? (touch ? 0.28 : 0.36) : touch ? 0.18 : 0.25
       }
     >
       <group
@@ -1318,9 +1150,7 @@ export function LiquidObsidianMobius({
                 ref={materialRef}
                 uniforms={uniforms}
                 vertexShader={VERTEX_SHADER}
-                fragmentShader={
-                  economy ? ECONOMY_FRAGMENT_SHADER : FRAGMENT_SHADER
-                }
+                fragmentShader={FRAGMENT_SHADER}
                 side={THREE.DoubleSide}
               />
             </mesh>
@@ -1365,7 +1195,7 @@ export function LiquidObsidianMobius({
           onLostPointerCapture={handleLostPointerCapture}
           onClick={handleClick}
         >
-          <sphereGeometry args={[1.72, economy ? 12 : 24, economy ? 8 : 18]} />
+          <sphereGeometry args={[1.72, 24, 18]} />
           <meshBasicMaterial transparent opacity={0.001} depthWrite={false} />
         </mesh>
       </group>

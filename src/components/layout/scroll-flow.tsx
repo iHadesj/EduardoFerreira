@@ -10,7 +10,6 @@ import {
   type HTMLMotionProps,
 } from "motion/react";
 import { useMounted } from "@/hooks/use-mounted";
-import { useEconomyDevice } from "@/hooks/use-economy-device";
 import { useReducedMotionSafe } from "@/hooks/use-reduced-motion-safe";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +27,6 @@ interface ScrollFlowProps {
 export function ScrollFlow({ children, id, className }: ScrollFlowProps) {
   const rootRef = useRef<HTMLElement>(null);
   const reduced = useReducedMotionSafe();
-  const economy = useEconomyDevice();
   const { scrollYProgress } = useScroll({
     target: rootRef,
     offset: ["start start", "end end"],
@@ -56,19 +54,15 @@ export function ScrollFlow({ children, id, className }: ScrollFlowProps) {
       <motion.div
         aria-hidden
         className="scroll-flow-ambient pointer-events-none fixed inset-0 z-0 overflow-hidden"
-        style={{ opacity: reduced || economy ? 0.78 : ambientOpacity }}
+        style={{ opacity: reduced ? 0.78 : ambientOpacity }}
       >
         <motion.div
           className="scroll-flow-glow-primary absolute -top-[18vw] -left-[24vw] size-[68vw] min-h-96 min-w-96 rounded-full"
-          style={
-            reduced || economy ? undefined : { x: firstGlowX, y: firstGlowY }
-          }
+          style={reduced ? undefined : { x: firstGlowX, y: firstGlowY }}
         />
         <motion.div
           className="scroll-flow-glow-secondary absolute right-[-28vw] bottom-[-16vw] size-[72vw] min-h-96 min-w-96 rounded-full"
-          style={
-            reduced || economy ? undefined : { x: secondGlowX, y: secondGlowY }
-          }
+          style={reduced ? undefined : { x: secondGlowX, y: secondGlowY }}
         />
       </motion.div>
 
@@ -112,7 +106,6 @@ export function ScrollSection({
   const sectionRef = useRef<HTMLElement>(null);
   const mounted = useMounted();
   const reduced = useReducedMotionSafe();
-  const economy = useEconomyDevice();
   const nearby = useInView(sectionRef, { margin: "100% 0px 100% 0px" });
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -134,7 +127,7 @@ export function ScrollSection({
     [0, 0.14, 0.32, 0.72, 0.9, 1],
     [0.72, 0.94, 1, 1, 0.92, 0.76],
   );
-  const hasScrollMotion = mounted && !reduced && !economy && nearby;
+  const hasScrollMotion = mounted && !reduced && nearby;
 
   return (
     <motion.section

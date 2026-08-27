@@ -192,13 +192,13 @@
   background:
     radial-gradient(
       circle at 50% 47%,
-      color-mix(in oklab, var(--color-molten) 46%, transparent) 0%,
-      color-mix(in oklab, var(--color-molten) 20%, transparent) 39%,
+      color-mix(in oklab, var(--color-molten) 39%, transparent) 0%,
+      color-mix(in oklab, var(--color-molten) 17%, transparent) 39%,
       transparent 72%
     ),
     radial-gradient(
       ellipse at 52% 54%,
-      color-mix(in oklab, var(--color-styx) 14%, transparent),
+      color-mix(in oklab, var(--color-styx) 11%, transparent),
       transparent 76%
     );
 }
@@ -308,30 +308,6 @@
 .hero-light-social {
   box-shadow: 0 0 var(--mobius-social-blur)
     color-mix(in oklab, var(--color-molten) 12%, transparent);
-}
-
-/* Low-end Android keeps the reactive light, but repaints one gradient instead
-   of four and avoids a continuously changing caustic layer. */
-#hero[data-mobius-tier="economy"] .hero-reactive-aura {
-  transition: none;
-  background: radial-gradient(
-    circle at var(--mobius-light-x) var(--mobius-light-y),
-    color-mix(in oklab, var(--color-molten) 28%, transparent) 0%,
-    color-mix(in oklab, var(--color-molten) 11%, transparent) 22%,
-    transparent 52%
-  );
-}
-
-#hero[data-mobius-tier="economy"] .hero-reactive-caustics {
-  display: none;
-}
-
-[data-mobius-tier="economy"] > .mobius-ambient-glow {
-  background: radial-gradient(
-    circle at 50% 48%,
-    color-mix(in oklab, var(--color-molten) 34%, transparent),
-    transparent 69%
-  );
 }
 
 @media (min-width: 64rem) {
