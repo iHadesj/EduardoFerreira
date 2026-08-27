@@ -7,10 +7,12 @@ import * as THREE from "three";
 
 const VERTEX_SHADER = /* glsl */ `
   uniform float uActivity;
+  uniform float uImpact;
   uniform vec2 uPointer;
   uniform float uPulse;
   uniform float uPulsePhase;
   uniform float uScrollProgress;
+  uniform float uSpinEnergy;
   uniform float uTime;
   uniform float uUnderworld;
 
@@ -95,7 +97,18 @@ const VERTEX_SHADER = /* glsl */ `
       sin(crossSectionPhase * 2.0 + uPulsePhase * 1.5) *
       pulseEnvelope *
       mix(0.075, 0.125, uUnderworld);
-    float displacement = idleFlow + cursorFlow + pulseWave;
+    float spinWave =
+      sin(loopPhase * 9.0 - uTime * 10.5 + crossSectionPhase * 2.0) *
+      uSpinEnergy *
+      uUnderworld *
+      0.064;
+    float impactWave =
+      sin(loopPhase * 12.0 - uTime * 15.0) *
+      uImpact *
+      uUnderworld *
+      0.09;
+    float displacement =
+      idleFlow + cursorFlow + pulseWave + spinWave + impactWave;
 
     vec3 transformed = position + normal * displacement;
     vec2 radialDirection = normalize(position.xy);
@@ -105,7 +118,8 @@ const VERTEX_SHADER = /* glsl */ `
     transformed.xy += radialDirection * (
       livingStretch +
       bodyBreath * 0.48 +
-      proximity * 0.05
+      proximity * 0.05 +
+      uImpact * uUnderworld * 0.055
     );
     transformed.z *= 1.0 + breathingCycle * 0.075;
     transformed.z +=
@@ -124,8 +138,15 @@ const VERTEX_SHADER = /* glsl */ `
     ) * scrollDissolve;
     vec4 worldPosition = modelMatrix * vec4(transformed, 1.0);
 
-    vDeformation = proximity + abs(idleFlow) * 8.0 + uPulse * 0.35;
-    vInteraction = max(proximity, pulseEnvelope);
+    vDeformation =
+      proximity +
+      abs(idleFlow) * 8.0 +
+      uPulse * 0.35 +
+      (uSpinEnergy * 0.5 + uImpact) * uUnderworld;
+    vInteraction = max(
+      max(proximity, pulseEnvelope),
+      (uSpinEnergy * 0.62 + uImpact) * uUnderworld
+    );
     vLoop = vec2(cos(uv.x * 6.2832), sin(uv.x * 6.2832));
     vWorldNormal = normalize(mat3(modelMatrix) * normal);
     vWorldPosition = worldPosition.xyz;
@@ -137,10 +158,12 @@ const VERTEX_SHADER = /* glsl */ `
 
 const FRAGMENT_SHADER = /* glsl */ `
   uniform float uActivity;
+  uniform float uImpact;
   uniform float uModeFrom;
   uniform float uModeProgress;
   uniform float uModeTo;
   uniform float uScrollProgress;
+  uniform float uSpinEnergy;
   uniform float uTime;
   uniform float uUnderworld;
 
@@ -166,9 +189,16 @@ const FRAGMENT_SHADER = /* glsl */ `
       vUv.x
     );
     float materialMode = mix(uModeFrom, uModeTo, materialWave);
-    float goldMode = clamp(1.0 - abs(materialMode - 1.0), 0.0, 1.0);
+    float requestedGoldMode = clamp(
+      1.0 - abs(materialMode - 1.0),
+      0.0,
+      1.0
+    );
     float emberMode = smoothstep(1.05, 2.0, materialMode);
     float worldMode = max(uUnderworld, emberMode);
+    // Underworld is authoritative: a previously selected gold material must
+    // never override the red palette while the secret theme is active.
+    float goldMode = requestedGoldMode * (1.0 - worldMode);
 
     float facing = max(dot(normal, viewDirection), 0.0);
     float fresnel = pow(1.0 - facing, 2.15);
@@ -295,6 +325,13 @@ const FRAGMENT_SHADER = /* glsl */ `
       worldMode *
       (0.13 + predatorBreathLight * 0.18);
     color += brightGold * vInteraction * (0.24 + fresnel * 0.22);
+    color +=
+      brightGold *
+      worldMode *
+      (
+        uImpact * (0.42 + fresnel * 0.48) +
+        uSpinEnergy * (livingVein * 0.24 + goldEdge * 0.2)
+      );
 
     vec3 edgeColor = mix(molten, brightGold, travelingGlint);
     color = mix(
@@ -334,7 +371,6 @@ const clamp = (value: number, min: number, max: number) =>
 
 const FULL_TURN = Math.PI * 2;
 const LONG_PRESS_MS = 720;
-const AWAKENED_DURATION_MS = 3600;
 const MATERIAL_CHANGE_COOLDOWN_MS = 1200;
 const TRAIL_LIFETIME = 0.62;
 
@@ -509,10 +545,11 @@ export function LiquidObsidianMobius({
   const pulse = useRef(0);
   const pulsePhase = useRef(0);
   const pulseHapticPending = useRef(false);
+  const impact = useRef(0);
+  const spinEnergy = useRef(0);
   const clickTimes = useRef<number[]>([]);
   const lastTap = useRef(0);
   const lastMaterialChange = useRef(Number.NEGATIVE_INFINITY);
-  const awakenedUntil = useRef(0);
   const longPressTimer = useRef<number | undefined>(undefined);
   const firstInteractionSent = useRef(false);
   const scrollTarget = useRef(0);
@@ -550,6 +587,7 @@ export function LiquidObsidianMobius({
   const uniforms = useMemo(
     () => ({
       uActivity: { value: 0 },
+      uImpact: { value: 0 },
       uModeFrom: { value: 0 },
       uModeProgress: { value: 1 },
       uModeTo: { value: 0 },
@@ -557,6 +595,7 @@ export function LiquidObsidianMobius({
       uPulse: { value: 0 },
       uPulsePhase: { value: 0 },
       uScrollProgress: { value: 0 },
+      uSpinEnergy: { value: 0 },
       uTime: { value: 0 },
       uUnderworld: { value: 0 },
     }),
@@ -632,12 +671,18 @@ export function LiquidObsidianMobius({
 
     const dragState = drag.current;
     const response = Math.min(1, delta * 7);
-    const awakened = performance.now() < awakenedUntil.current;
     material.uniforms.uUnderworld!.value +=
-      ((underworld || awakened ? 1 : 0) -
-        material.uniforms.uUnderworld!.value) *
+      ((underworld ? 1 : 0) - material.uniforms.uUnderworld!.value) *
       Math.min(1, delta * 2.8);
     const aggression = material.uniforms.uUnderworld!.value as number;
+    spinEnergy.current = Math.max(
+      0,
+      spinEnergy.current - delta * (0.82 + (1 - aggression) * 1.25),
+    );
+    impact.current = Math.max(
+      0,
+      impact.current - delta * (1.35 + (1 - aggression) * 1.4),
+    );
     const scroll = scrollTarget.current;
 
     const transition = materialTransition.current;
@@ -668,7 +713,7 @@ export function LiquidObsidianMobius({
         0.38,
       );
       offset.current.y += velocity.current.y;
-      const decay = Math.pow(0.91, delta * 60);
+      const decay = Math.pow(0.91 + aggression * 0.035, delta * 60);
       velocity.current.x *= decay;
       velocity.current.y *= decay;
       offset.current.x += (0 - offset.current.x) * Math.min(1, delta * 0.9);
@@ -684,7 +729,13 @@ export function LiquidObsidianMobius({
     const targetX = 0.7 + pointerTiltX + offset.current.x;
     const targetY = -0.34 + pointerTiltY + offset.current.y;
     const rotationResponse =
-      1 - Math.exp(-delta * (touch && dragState.active ? 13 : 2.8));
+      1 -
+      Math.exp(
+        -delta *
+          (touch && dragState.active
+            ? 13 + aggression * 8
+            : 2.8 + aggression * 2.4),
+      );
     group.rotation.x += (targetX - group.rotation.x) * rotationResponse;
     group.rotation.y += (targetY - group.rotation.y) * rotationResponse;
     const targetPositionX = touch ? 0 : pointer.x * 0.12;
@@ -705,18 +756,24 @@ export function LiquidObsidianMobius({
         elapsed.current * 3.85 + Math.sin(elapsed.current * 1.13) * 0.9,
       );
       const livingScale =
-        breath * 0.038 + undertow * 0.013 + predatorPulse * 0.032 * aggression;
+        breath * 0.038 +
+        undertow * 0.013 +
+        predatorPulse * 0.032 * aggression +
+        impact.current * 0.07 * aggression;
 
       sculpture.rotation.z +=
         delta *
         (0.31 +
           Math.sin(elapsed.current * 0.39) * 0.055 +
           aggression * (0.2 + Math.sin(elapsed.current * 2.45) * 0.09) +
-          pulse.current * (0.2 + aggression * 0.16));
+          pulse.current * (0.2 + aggression * 0.16) +
+          spinEnergy.current * aggression * 1.2 +
+          impact.current * aggression * 1.65);
       sculpture.rotation.x =
         Math.sin(elapsed.current * 0.81) * 0.22 +
         Math.sin(elapsed.current * 1.93) * 0.052 +
-        Math.sin(elapsed.current * 3.42) * 0.095 * aggression;
+        Math.sin(elapsed.current * 3.42) * 0.095 * aggression +
+        Math.sin(elapsed.current * 13.0) * impact.current * aggression * 0.13;
       sculpture.rotation.y =
         Math.cos(elapsed.current * 0.66) * 0.19 +
         Math.sin(elapsed.current * 1.47) * 0.038 +
@@ -801,9 +858,11 @@ export function LiquidObsidianMobius({
     const pointerUniform = material.uniforms.uPointer!.value as THREE.Vector2;
     pointerUniform.lerp(pointer, response);
     material.uniforms.uTime!.value = elapsed.current;
+    material.uniforms.uImpact!.value = impact.current;
     material.uniforms.uPulse!.value = pulse.current;
     material.uniforms.uPulsePhase!.value = pulsePhase.current;
     material.uniforms.uScrollProgress!.value = scroll;
+    material.uniforms.uSpinEnergy!.value = spinEnergy.current;
     material.uniforms.uModeFrom!.value = transition.from;
     material.uniforms.uModeTo!.value = transition.to;
     material.uniforms.uModeProgress!.value = transition.progress;
@@ -816,6 +875,10 @@ export function LiquidObsidianMobius({
       window.clearTimeout(longPressTimer.current);
       longPressTimer.current = undefined;
     }
+  }
+
+  function isAggressiveMode() {
+    return underworld;
   }
 
   function enableDeviceTilt() {
@@ -865,7 +928,15 @@ export function LiquidObsidianMobius({
       clamp(source.z * 0.22, -0.18, 0.18),
     );
 
-    const emissionCount = movement > 10 ? 2 : 1;
+    const aggressiveMode = isAggressiveMode();
+    const emissionCount = aggressiveMode
+      ? movement > 8
+        ? 3
+        : 2
+      : movement > 10
+        ? 2
+        : 1;
+    const particleSpeed = aggressiveMode ? 1.65 : 1;
     for (let emission = 0; emission < emissionCount; emission += 1) {
       const trailField = trailFieldRef.current;
       const index = trailField.cursor % trailField.life.length;
@@ -879,10 +950,12 @@ export function LiquidObsidianMobius({
       trailField.positions[offsetIndex + 1] =
         source.y + (seededValue(index + 31) - 0.5) * 0.055;
       trailField.positions[offsetIndex + 2] = source.z;
-      trailField.velocities[offsetIndex] = radialX * (0.12 + seed * 0.13);
+      trailField.velocities[offsetIndex] =
+        radialX * (0.12 + seed * 0.13) * particleSpeed;
       trailField.velocities[offsetIndex + 1] =
-        radialY * (0.12 + seed * 0.13) + 0.035;
-      trailField.velocities[offsetIndex + 2] = (seed - 0.5) * 0.22;
+        (radialY * (0.12 + seed * 0.13) + 0.035) * particleSpeed;
+      trailField.velocities[offsetIndex + 2] =
+        (seed - 0.5) * 0.22 * particleSpeed;
       trailField.life[index] = TRAIL_LIFETIME;
     }
   }
@@ -907,7 +980,8 @@ export function LiquidObsidianMobius({
       const dragState = drag.current;
       if (!dragState.active || dragState.travel > 10) return;
       dragState.longPressed = true;
-      awakenedUntil.current = performance.now() + AWAKENED_DURATION_MS;
+      impact.current = 1;
+      spinEnergy.current = Math.max(spinEnergy.current, 0.72);
       triggerPulse(false);
       navigator.vibrate?.([24, 32, 54]);
       longPressTimer.current = undefined;
@@ -925,13 +999,23 @@ export function LiquidObsidianMobius({
     dragState.travel += Math.abs(dx) + Math.abs(dy);
     if (dragState.travel > 10) clearLongPress();
 
-    const yaw = dx * (touch ? 0.0062 : 0.0045);
-    const tilt = dy * (touch ? 0.0044 : 0.0032);
+    const movement = Math.abs(dx) + Math.abs(dy);
+    const aggressiveMode = isAggressiveMode();
+    const dragMultiplier = aggressiveMode ? 1.48 : 1;
+    const yaw = dx * (touch ? 0.0062 : 0.0045) * dragMultiplier;
+    const tilt = dy * (touch ? 0.0044 : 0.0032) * dragMultiplier;
     offset.current.y += yaw;
     offset.current.x = clamp(offset.current.x + tilt, -0.38, 0.38);
     velocity.current.y = yaw;
     velocity.current.x = tilt;
-    emitTrail(event.point, Math.abs(dx) + Math.abs(dy));
+    if (aggressiveMode) {
+      spinEnergy.current = clamp(
+        spinEnergy.current + movement * (touch ? 0.02 : 0.014),
+        0,
+        1,
+      );
+    }
+    emitTrail(event.point, movement);
   }
 
   function handlePointerUp(event: ThreeEvent<PointerEvent>) {
@@ -954,24 +1038,32 @@ export function LiquidObsidianMobius({
       return;
     }
     if (drag.current.travel > 8) return;
-    triggerPulse(true);
 
     const now = performance.now();
+    const aggressiveMode = isAggressiveMode();
+    triggerPulse(!aggressiveMode);
+    if (aggressiveMode) {
+      const kickDirection = clickTimes.current.length % 2 === 0 ? 1 : -1;
+      impact.current = 1;
+      spinEnergy.current = Math.max(spinEnergy.current, 0.86);
+      offset.current.x = clamp(offset.current.x - 0.11, -0.38, 0.38);
+      velocity.current.y += kickDirection * 0.052;
+      navigator.vibrate?.([18, 16, 34]);
+    }
+
     if (now - lastTap.current < 340) {
       // Consume the pair even during the cooldown so a rapid tap burst cannot
       // be reinterpreted as several consecutive material changes.
       lastTap.current = 0;
       const transition = materialTransition.current;
-      const specialModeActive =
-        underworld || performance.now() < awakenedUntil.current;
       const canChangeMaterial =
-        !specialModeActive &&
+        !aggressiveMode &&
         transition.progress >= 0.92 &&
         now - lastMaterialChange.current >= MATERIAL_CHANGE_COOLDOWN_MS;
 
       if (canChangeMaterial) {
-        // Red is exclusive to Underworld/long press. Regular double taps only
-        // alternate between obsidian and liquid gold.
+        // Red is exclusive to Underworld. Surface gestures only alternate
+        // between obsidian and liquid gold.
         const nextMode = transition.to === 0 ? 1 : 0;
         transition.from = transition.to;
         transition.to = nextMode;
@@ -1012,7 +1104,7 @@ export function LiquidObsidianMobius({
       <group
         ref={groupRef}
         rotation={[0.7, -0.34, -0.14]}
-        scale={touch ? 1.04 : 1}
+        scale={touch ? 0.94 : 1}
       >
         <group ref={scrollGroupRef}>
           <group ref={sculptureRef}>

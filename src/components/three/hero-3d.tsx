@@ -198,11 +198,7 @@ export function Hero3D({ className }: { className?: string }) {
       {/* Persistent ambient glow (compensates for dropped postprocessing bloom). */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -inset-1/4"
-        style={{
-          background:
-            "radial-gradient(circle at 50% 46%, color-mix(in oklab, var(--color-molten) 18%, transparent) 0%, color-mix(in oklab, var(--color-molten) 6%, transparent) 34%, transparent 60%)",
-        }}
+        className="mobius-ambient-glow pointer-events-none absolute -inset-1/4"
       />
       <HeroPoster
         underworld={underworld}

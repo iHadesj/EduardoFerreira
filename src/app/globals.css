@@ -170,6 +170,66 @@
   position: relative;
 }
 
+/* Mobile screens need a denser color stop: the same large gradients otherwise
+   lose most of their contrast after being compressed into a narrow viewport. */
+.scroll-flow-glow-primary {
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--color-molten) 18%, transparent) 0%,
+    transparent 68%
+  );
+}
+
+.scroll-flow-glow-secondary {
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--color-styx) 13%, transparent) 0%,
+    transparent 69%
+  );
+}
+
+.mobius-ambient-glow {
+  background:
+    radial-gradient(
+      circle at 50% 47%,
+      color-mix(in oklab, var(--color-molten) 32%, transparent) 0%,
+      color-mix(in oklab, var(--color-molten) 13%, transparent) 38%,
+      transparent 68%
+    ),
+    radial-gradient(
+      ellipse at 52% 54%,
+      color-mix(in oklab, var(--color-styx) 10%, transparent),
+      transparent 72%
+    );
+}
+
+@media (min-width: 40rem) {
+  .scroll-flow-glow-primary {
+    background: radial-gradient(
+      circle,
+      color-mix(in oklab, var(--color-molten) 9%, transparent) 0%,
+      transparent 67%
+    );
+  }
+
+  .scroll-flow-glow-secondary {
+    background: radial-gradient(
+      circle,
+      color-mix(in oklab, var(--color-styx) 7%, transparent) 0%,
+      transparent 68%
+    );
+  }
+
+  .mobius-ambient-glow {
+    background: radial-gradient(
+      circle at 50% 46%,
+      color-mix(in oklab, var(--color-molten) 18%, transparent) 0%,
+      color-mix(in oklab, var(--color-molten) 6%, transparent) 34%,
+      transparent 60%
+    );
+  }
+}
+
 .scroll-flow-section:not(#hero)::before {
   content: "";
   position: absolute;
@@ -204,6 +264,19 @@
     transparent 70%
   );
   pointer-events: none;
+}
+
+@media (max-width: 39.999rem) {
+  .scroll-flow-section:not(#hero)::after {
+    top: -8rem;
+    width: min(108vw, 34rem);
+    height: 17rem;
+    background: radial-gradient(
+      ellipse at center,
+      color-mix(in oklab, var(--color-molten) 11%, transparent),
+      transparent 72%
+    );
+  }
 }
 
 /* Navbar surface once scrolled (§F2) */

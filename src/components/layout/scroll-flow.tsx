@@ -51,32 +51,20 @@ export function ScrollFlow({ children, id, className }: ScrollFlowProps) {
       data-scroll-flow
       className={cn("relative isolate overflow-clip", className)}
     >
-      {!reduced ? (
+      <motion.div
+        aria-hidden
+        className="scroll-flow-ambient pointer-events-none fixed inset-0 z-0 overflow-hidden"
+        style={{ opacity: reduced ? 0.78 : ambientOpacity }}
+      >
         <motion.div
-          aria-hidden
-          className="scroll-flow-ambient pointer-events-none fixed inset-0 z-0 overflow-hidden"
-          style={{ opacity: ambientOpacity }}
-        >
-          <motion.div
-            className="absolute -top-[18vw] -left-[24vw] size-[68vw] min-h-96 min-w-96 rounded-full"
-            style={{
-              x: firstGlowX,
-              y: firstGlowY,
-              background:
-                "radial-gradient(circle, color-mix(in oklab, var(--color-molten) 9%, transparent) 0%, transparent 67%)",
-            }}
-          />
-          <motion.div
-            className="absolute right-[-28vw] bottom-[-16vw] size-[72vw] min-h-96 min-w-96 rounded-full"
-            style={{
-              x: secondGlowX,
-              y: secondGlowY,
-              background:
-                "radial-gradient(circle, color-mix(in oklab, var(--color-styx) 7%, transparent) 0%, transparent 68%)",
-            }}
-          />
-        </motion.div>
-      ) : null}
+          className="scroll-flow-glow-primary absolute -top-[18vw] -left-[24vw] size-[68vw] min-h-96 min-w-96 rounded-full"
+          style={reduced ? undefined : { x: firstGlowX, y: firstGlowY }}
+        />
+        <motion.div
+          className="scroll-flow-glow-secondary absolute right-[-28vw] bottom-[-16vw] size-[72vw] min-h-96 min-w-96 rounded-full"
+          style={reduced ? undefined : { x: secondGlowX, y: secondGlowY }}
+        />
+      </motion.div>
 
       {!reduced ? (
         <>
