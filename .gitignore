@@ -12,3 +12,7 @@
 # Misc
 *.tsbuildinfo
 .DS_Store
+/.codex-edge-stack-cdp
+/.codex-edge-stack-final
+/.codex-edge-stack-mobile-2
+/.codex-edge-stack-motion
