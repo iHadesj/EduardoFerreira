@@ -170,6 +170,7 @@ export function MobileNav() {
   const scrollTo = useSmoothScroll();
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const pendingHrefRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -227,9 +228,23 @@ export function MobileNav() {
     };
   }, [open]);
 
+  // The scroll has to wait for the effect above to release the body lock —
+  // `position: fixed` on the body collapses the document, and scrolling while
+  // it is collapsed lands nowhere. Running it from an effect keyed on `open`
+  // makes the ordering explicit: React flushes the lock cleanup before this
+  // body, and passive effects run after layout, so `scrollTo` measures the
+  // restored page. (The previous 60ms timeout was a guess that fired mid-unlock.)
+  useEffect(() => {
+    if (open) return;
+    const href = pendingHrefRef.current;
+    if (!href) return;
+    pendingHrefRef.current = null;
+    scrollTo(href);
+  }, [open, scrollTo]);
+
   function go(href: string) {
+    pendingHrefRef.current = href;
     setOpen(false);
-    window.setTimeout(() => scrollTo(href), 60);
   }
 
   return (

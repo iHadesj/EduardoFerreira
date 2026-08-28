@@ -17,6 +17,20 @@ export interface ReposPage {
   nextPage: number | null;
 }
 
+/** Janela "recente" do feed: 18 meses (1 ano e meio) desde o último push. */
+export const RECENT_WINDOW_MONTHS = 18;
+
+/**
+ * ISO do limite da janela recente. Calculado no servidor e passado ao feed como
+ * prop: o corte decide *quais* cards existem, então prerender e hidratação
+ * precisam do mesmo valor. `now` é injetável para testes.
+ */
+export function recentWindowCutoff(now: Date = new Date()): string {
+  const cutoff = new Date(now);
+  cutoff.setMonth(cutoff.getMonth() - RECENT_WINDOW_MONTHS);
+  return cutoff.toISOString();
+}
+
 export interface ContributionDay {
   date: string;
   count: number;

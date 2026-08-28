@@ -1,5 +1,10 @@
 import { SectionHeading } from "@/components/ui/section-heading";
-import { fetchContributions, fetchRepos, type ReposPage } from "@/lib/github";
+import {
+  fetchContributions,
+  fetchRepos,
+  recentWindowCutoff,
+  type ReposPage,
+} from "@/lib/github";
 import { GithubFeed } from "./github-feed";
 import { ContributionsHeatmap } from "./contributions-heatmap";
 import { ScrollSection } from "@/components/layout/scroll-flow";
@@ -16,6 +21,9 @@ export async function GithubActivity() {
     // Graceful: the feed shows its error/empty state without breaking the page.
   }
   const contributions = await fetchContributions();
+  // A página é ISR (revalidate 3600), então o corte fica no máximo 1h defasado —
+  // irrelevante numa janela de 18 meses, e vale a determinismo na hidratação.
+  const cutoff = recentWindowCutoff();
 
   return (
     <ScrollSection
@@ -36,7 +44,7 @@ export async function GithubActivity() {
       ) : null}
 
       <div className="mt-10">
-        <GithubFeed initialData={initial} />
+        <GithubFeed initialData={initial} cutoff={cutoff} />
       </div>
     </ScrollSection>
   );

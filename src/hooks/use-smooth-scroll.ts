@@ -20,6 +20,14 @@ export function useSmoothScroll(): (hash: string) => void {
       const el = document.getElementById(id);
       if (!el) return;
       if (lenis) {
+        // Lenis debounces its ResizeObserver by 250ms and clamps every
+        // scrollTo target to the cached `limit`. A caller that scrolls right
+        // after a layout change — the mobile menu releasing its body lock —
+        // would hit a stale limit of ~0 and get clamped to the top of the page.
+        // resize() recomputes the dimensions and resyncs to the real scroll
+        // position synchronously, so the target below is measured against
+        // current layout.
+        lenis.resize();
         lenis.scrollTo(el, { offset: -NAV_OFFSET });
       } else {
         el.scrollIntoView({ behavior: "smooth", block: "start" });
