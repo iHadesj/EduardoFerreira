@@ -23,13 +23,67 @@ metrics:
     value: 100% local
   - label: BPM
     value: "92"
+decisions:
+  - choice: O áudio é do usuário, não do site
+    instead: Hospedar o MP3 junto com a página
+    because: O player lê um arquivo local, colocado na pasta ou arrastado para a tela. Resolve a questão de direitos sem meio-termo e faz o site inteiro funcionar offline.
+    cost: A demonstração pública sobe sem áudio — quem clona precisa levar o próprio arquivo.
+  - choice: Espectro real vindo da Web Audio API
+    instead: Uma animação decorativa fingindo reagir ao som
+    because: A visualização analisa o áudio que está tocando de verdade.
+    cost: Em iOS e iPadOS a análise em segundo plano é restrita, então lá o site cai para um espectro simulado em vez de congelar.
+  - choice: prefers-reduced-motion como caminho de primeira classe
+    instead: Desligar a página inteira para quem pediu menos movimento
+    because: Sem tremor, zoom ou moscas animadas o player, a letra e o espectro continuam funcionando — efeito é tempero, não estrutura.
+  - choice: Letra como dado, com sincronizador embutido
+    instead: Tempos de letra fixos no código
+    because: O site aceita .txt e .lrc, e marcar a linha com Enter e ajustar em passos de 0,25 s exporta um .lrc pronto — sincronizar na mão é tedioso o bastante para valer a ferramenta.
+  - choice: Intensidade do refrão marcada à mão
+    instead: Detecção automática de seções
+    because: Casar a curva da interface com esta faixa específica foi o caminho mais curto para provar a ideia.
+    cost: Prende o projeto a uma música só — seções, BPM e intensidade precisariam virar arquivo de configuração para servir a qualquer faixa.
+en:
+  title: Change (In The House Of Flies)
+  summary: A single-track microsite — offline player, real-time spectrum via Web Audio, and synced lyrics that react to the chorus at 92 BPM.
+  problem: Translate a whole song into interface — without streaming, without hosting protected audio, and without breaking people who prefer less motion.
+  highlights:
+    - Real-time spectrum from the Web Audio API, reacting to local audio
+    - Synced lyrics with a built-in synchroniser and .lrc export
+    - The chorus drives intensity — halo, zoom, shake and animated flies
+    - Media Session API for lock-screen control
+  metrics:
+    - label: Track
+      value: "1"
+    - label: Audio
+      value: 100% local
+    - label: BPM
+      value: "92"
+  decisions:
+    - choice: The audio belongs to the user, not the site
+      instead: Hosting the MP3 alongside the page
+      because: The player reads a local file, dropped into a folder or dragged onto the page. It settles the rights question with no half-measure and makes the whole site work offline.
+      cost: The public demo ships with no audio — anyone cloning it brings their own file.
+    - choice: A real spectrum from the Web Audio API
+      instead: A decorative animation pretending to react to sound
+      because: The visualisation analyses the audio that is actually playing.
+      cost: On iOS and iPadOS background analysis is restricted, so there the site falls back to a simulated spectrum rather than freezing.
+    - choice: prefers-reduced-motion as a first-class path
+      instead: Switching the whole page off for anyone who asked for less motion
+      because: Without shake, zoom or animated flies the player, lyrics and spectrum all still work — effect is seasoning, not structure.
+    - choice: Lyrics as data, with a synchroniser built in
+      instead: Lyric timings hard-coded
+      because: The site accepts .txt and .lrc, and marking a line with Enter and nudging it in 0.25s steps exports a finished .lrc — syncing by hand is tedious enough to justify the tool.
+    - choice: Chorus intensity marked by hand
+      instead: Automatic section detection
+      because: Matching the interface's curve to this specific track was the shortest path to proving the idea.
+      cost: It ties the project to one song — sections, BPM and intensity would have to become a config file to serve any track.
 ---
 
 ## O problema
 
 Este é o projeto sem cliente e sem métrica — o que eu queria era ver até onde
 dá para levar uma interface quando o conteúdo é uma faixa só. "Change (In The
-House Of Flies)", do *White Pony*, é uma música de colapso lento: começa
+House Of Flies)", do _White Pony_, é uma música de colapso lento: começa
 contida e desaba no refrão. A pergunta era se a página conseguia fazer a mesma
 curva.
 
@@ -68,7 +122,7 @@ público sobe sem áudio, e quem clona coloca o próprio arquivo. Todo o
 processamento (decodificação, análise de espectro, sincronia de letra) acontece
 no navegador; não existe backend nem estado de servidor.
 
-A identidade visual vem do próprio disco: paleta *White Pony* — osso, violeta
+A identidade visual vem do próprio disco: paleta _White Pony_ — osso, violeta
 dessaturado e um preto puxado para o azul — com tipografia serifada em corpo
 grande e um fundo procedural de moscas atravessando a tela. Os atalhos de
 teclado seguem a convenção de player (espaço para tocar e pausar, `M` para

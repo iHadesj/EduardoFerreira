@@ -23,6 +23,52 @@ metrics:
     value: Socket.IO
   - label: Persistência
     value: Firebase
+decisions:
+  - choice: Firebase para identidade e progresso
+    instead: Autenticação e banco próprios no backend Express
+    because: Authentication cuida da sessão e o Firestore mantém XP, estrelas, tentativas, níveis, perfil, amizades e conquistas, com um listener em tempo real hidratando a aplicação quando esses dados mudam.
+    cost: Credenciais administrativas precisam ficar no gerenciador de secrets do deploy, nunca em arquivo versionável.
+  - choice: Socket.IO para o multiplayer
+    instead: Polling da API REST durante a partida
+    because: Convites, salas, prontidão, respostas e placar trafegam como eventos, e a partida trabalha com tempo limitado e pontuação proporcional à velocidade da resposta.
+    cost: O estado das salas vive na memória do processo, então hoje o servidor não escala para além de uma instância.
+  - choice: Conteúdo em arquivos JSON por disciplina
+    instead: Modelar as perguntas como tabelas no banco
+    because: O GameManager reúne esse banco para sortear perguntas sem duplicar identificadores, e uma matéria nova é um arquivo, não uma migração.
+  - choice: Zustand concentrando o progresso já sincronizado
+    instead: Estado espalhado pelas telas de matéria, nível e exercício
+    because: As telas consomem uma fonte só, e a hidratação vinda do Firebase tem um único ponto de entrada.
+en:
+  title: StudyQuest
+  summary: A gamified study platform with subject tracks, persisted progression and real-time duels.
+  problem: Studying consistently is hard — StudyQuest turns the routine into visible progression and short challenges.
+  coverAlt: StudyQuest home screen with subjects grouped by area and colourful progress bars.
+  highlights:
+    - Content and exercises across 11 subjects with level-by-level progression
+    - XP, achievements, ranking and profile synced with Firebase
+    - Multiplayer duels with invites, rooms and real-time scoring
+  metrics:
+    - label: Content
+      value: 11 subjects
+    - label: Real time
+      value: Socket.IO
+    - label: Persistence
+      value: Firebase
+  decisions:
+    - choice: Firebase for identity and progress
+      instead: Rolling my own auth and database on the Express backend
+      because: Authentication owns the session while Firestore holds XP, stars, attempts, levels, profile, friendships and achievements, with a realtime listener rehydrating the app when any of it changes.
+      cost: Admin credentials have to live in the deploy environment's secret manager, never in a committable file.
+    - choice: Socket.IO for multiplayer
+      instead: Polling the REST API during a match
+      because: Invites, rooms, readiness, answers and the scoreboard all travel as events, and matches run on a timer with scoring proportional to answer speed.
+      cost: Room state lives in process memory, so the server does not scale past a single instance today.
+    - choice: Content as per-subject JSON files
+      instead: Modelling the question bank as database tables
+      because: GameManager assembles that bank to draw questions without duplicating identifiers, and a new subject is a file rather than a migration.
+    - choice: Zustand holding the already-synced progress
+      instead: State scattered across the subject, level and exercise screens
+      because: The screens read one source, and hydration coming back from Firebase has a single entry point.
 ---
 
 ## O problema

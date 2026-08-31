@@ -2,21 +2,27 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, useMotionValueEvent, useScroll } from "motion/react";
 import { navItems } from "@/lib/site-config";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { LocaleToggle } from "@/components/ui/locale-toggle";
 import { Kbd } from "@/components/ui/kbd";
 import { useScrollSpy } from "@/hooks/use-scroll-spy";
 import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
 import { useCommandMenu } from "@/components/layout/command-menu";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/locale-provider";
+import { localePath, sectionPath } from "@/lib/i18n/routes";
 
 export function Navbar() {
   const ids = useMemo(() => navItems.map((item) => item.id), []);
   const active = useScrollSpy(ids);
   const scrollTo = useSmoothScroll();
+  const router = useRouter();
   const { setOpen } = useCommandMenu();
+  const { locale, dict } = useI18n();
 
   const { scrollY } = useScroll();
   const [scrolled, setScrolled] = useState(false);
@@ -30,7 +36,14 @@ export function Navbar() {
 
   function handleNav(event: React.MouseEvent, href: string) {
     event.preventDefault();
-    scrollTo(href);
+    // The nav is part of the persistent chrome, so it also renders on case
+    // study pages where these sections do not exist. Scrolling there would be a
+    // no-op click; route home to the anchor instead.
+    if (document.querySelector(href)) {
+      scrollTo(href);
+      return;
+    }
+    router.push(sectionPath(locale, href));
   }
 
   return (
@@ -44,12 +57,12 @@ export function Navbar() {
       )}
     >
       <nav
-        aria-label="Navegação principal"
+        aria-label={dict.nav.main}
         className="container-hades flex h-16 items-center justify-between"
       >
         <Link
-          href="/"
-          aria-label="Início — Edu Ferreira"
+          href={localePath(locale, "/")}
+          aria-label={dict.nav.home}
           data-cursor="hover"
           className="font-display text-bone text-xl tracking-tight"
         >
@@ -71,7 +84,7 @@ export function Navbar() {
                     isActive ? "text-bone" : "text-smoke hover:text-bone",
                   )}
                 >
-                  {item.label.pt}
+                  {item.label[locale]}
                   {isActive ? (
                     <motion.span
                       layoutId="nav-underline"
@@ -85,15 +98,16 @@ export function Navbar() {
         </ul>
 
         <div className="flex items-center gap-2">
+          <LocaleToggle />
           <ThemeToggle />
           <button
             type="button"
             onClick={() => setOpen(true)}
-            aria-label="Abrir paleta de comandos"
+            aria-label={dict.nav.openCommands}
             data-cursor="hover"
             className="rounded-pill border-ash text-smoke hover:border-molten hover:text-bone hidden items-center gap-1.5 border px-3 py-1.5 text-sm transition-colors md:inline-flex"
           >
-            <span>Comandos</span>
+            <span>{dict.nav.commands}</span>
             <Kbd>⌘</Kbd>
             <Kbd>K</Kbd>
           </button>

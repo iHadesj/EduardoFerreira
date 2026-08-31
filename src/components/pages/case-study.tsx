@@ -1,29 +1,17 @@
-import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
-import { getProject, projects } from "@/lib/projects";
+import { ArrowLeft, ArrowRight, ArrowUpRight, Languages } from "lucide-react";
+import { getProject, localizeProject, localizedProjects } from "@/lib/projects";
 import { MDXContent } from "@/components/mdx/mdx-content";
+import { DecisionLog } from "@/components/sections/decision-log";
 import { Badge } from "@/components/ui/badge";
 import { GitHubIcon } from "@/components/icons";
-
-interface PageProps {
-  params: Promise<{ slug: string }>;
-}
-
-export function generateStaticParams() {
-  return projects.map((project) => ({ slug: project.slug }));
-}
-
-export async function generateMetadata({
-  params,
-}: PageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const project = getProject(slug);
-  if (!project) return {};
-  return { title: project.title, description: project.summary };
-}
+import { htmlLang, type Locale } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { fill } from "@/lib/i18n/format";
+import { localePath, projectPath } from "@/lib/i18n/routes";
+import { projectCoverName, projectTitleName } from "@/lib/view-transition";
 
 const proseClass = [
   "prose prose-invert max-w-[68ch]",
@@ -35,30 +23,53 @@ const proseClass = [
   "prose-blockquote:border-l-molten prose-blockquote:text-smoke prose-blockquote:not-italic",
 ].join(" ");
 
-export default async function ProjectPage({ params }: PageProps) {
-  const { slug } = await params;
-  const project = getProject(slug);
-  if (!project) notFound();
+export function CaseStudyPage({
+  locale,
+  slug,
+}: {
+  locale: Locale;
+  slug: string;
+}) {
+  const source = getProject(slug);
+  if (!source) notFound();
 
-  const index = projects.findIndex((p) => p.slug === slug);
-  const previous = index > 0 ? projects[index - 1] : undefined;
-  const next = index < projects.length - 1 ? projects[index + 1] : undefined;
+  const project = localizeProject(source, locale);
+  const dict = getDictionary(locale);
+  const t = dict.projectPage;
+
+  // Siblings are read in the active locale so prev/next show translated titles.
+  const siblings = localizedProjects(locale);
+  const index = siblings.findIndex((item) => item.slug === slug);
+  const previous = index > 0 ? siblings[index - 1] : undefined;
+  const next = index < siblings.length - 1 ? siblings[index + 1] : undefined;
+
+  const coverAlt =
+    project.coverAlt ?? fill(dict.projects.coverAlt, { title: project.title });
+  const showTranslationNotice =
+    !project.bodyMatchesLocale && t.translationNotice.length > 0;
 
   return (
     <main id="conteudo" className="container-hades section-pad">
       <Link
-        href="/#projetos"
+        href={localePath(locale, "/#projetos")}
         data-cursor="hover"
         className="text-smoke hover:text-molten mb-10 inline-flex items-center gap-2 text-sm transition-colors"
       >
-        <ArrowLeft size={16} strokeWidth={1.5} /> Voltar
+        <ArrowLeft size={16} strokeWidth={1.5} /> {t.back}
       </Link>
 
       <header className="border-ash flex flex-col gap-5 border-b pb-10">
         <Badge variant={project.status === "in-progress" ? "ember" : "default"}>
-          {project.status}
+          {dict.projects.statuses[project.status]}
         </Badge>
-        <h1 className="font-display text-hero text-bone">{project.title}</h1>
+        {/* Paired with the card that was clicked — the browser morphs one into
+            the other instead of cutting between pages. */}
+        <h1
+          className="font-display text-hero text-bone"
+          style={{ viewTransitionName: projectTitleName(slug) }}
+        >
+          {project.title}
+        </h1>
         <p className="prose-measure text-lead text-smoke">{project.summary}</p>
 
         {project.metrics.length > 0 ? (
@@ -88,7 +99,7 @@ export default async function ProjectPage({ params }: PageProps) {
               data-cursor="hover"
               className="text-smoke hover:text-bone inline-flex items-center gap-1.5 transition-colors"
             >
-              <GitHubIcon className="size-[18px]" /> Repositório
+              <GitHubIcon className="size-[18px]" /> {t.repo}
             </a>
           ) : null}
           {project.demo ? (
@@ -99,17 +110,20 @@ export default async function ProjectPage({ params }: PageProps) {
               data-cursor="hover"
               className="text-smoke hover:text-bone inline-flex items-center gap-1.5 transition-colors"
             >
-              <ArrowUpRight size={16} strokeWidth={1.5} /> Demo ao vivo
+              <ArrowUpRight size={16} strokeWidth={1.5} /> {t.demo}
             </a>
           ) : null}
         </div>
       </header>
 
       {project.cover ? (
-        <div className="border-ash relative mt-10 aspect-[16/9] overflow-hidden rounded-lg border">
+        <div
+          className="border-ash relative mt-10 aspect-[16/9] overflow-hidden rounded-lg border"
+          style={{ viewTransitionName: projectCoverName(slug) }}
+        >
           <Image
             src={project.cover}
-            alt={project.coverAlt ?? `Tela do projeto ${project.title}`}
+            alt={coverAlt}
             fill
             priority
             sizes="(min-width: 1024px) 60rem, 100vw"
@@ -118,14 +132,29 @@ export default async function ProjectPage({ params }: PageProps) {
         </div>
       ) : null}
 
-      <article className={`mt-10 ${proseClass}`}>
+      <DecisionLog decisions={project.decisions} dict={dict} />
+
+      {showTranslationNotice ? (
+        <p className="border-ash bg-basalt text-smoke mt-16 flex items-start gap-3 rounded-md border border-dashed p-4 text-sm">
+          <Languages
+            aria-hidden
+            size={18}
+            strokeWidth={1.5}
+            className="text-molten mt-0.5 shrink-0"
+          />
+          {t.translationNotice}
+        </p>
+      ) : null}
+
+      {/* The long-form body is authored in Portuguese in every locale. */}
+      <article className={`mt-10 ${proseClass}`} lang={htmlLang.pt}>
         <MDXContent code={project.content} />
       </article>
 
       <nav className="border-ash mt-16 flex justify-between gap-4 border-t pt-8 text-sm">
         {previous ? (
           <Link
-            href={previous.url}
+            href={projectPath(locale, previous.slug)}
             data-cursor="hover"
             className="text-smoke hover:text-molten inline-flex items-center gap-2 transition-colors"
           >
@@ -136,7 +165,7 @@ export default async function ProjectPage({ params }: PageProps) {
         )}
         {next ? (
           <Link
-            href={next.url}
+            href={projectPath(locale, next.slug)}
             data-cursor="hover"
             className="text-smoke hover:text-molten inline-flex items-center gap-2 text-right transition-colors"
           >

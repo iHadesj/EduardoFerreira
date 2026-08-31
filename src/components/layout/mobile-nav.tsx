@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { useTheme } from "next-themes";
 import { Flame, Menu, X } from "lucide-react";
@@ -10,6 +11,8 @@ import { useMounted } from "@/hooks/use-mounted";
 import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
 import { useToast } from "@/components/ui/toast";
 import { fadeUpItem, staggerContainer } from "@/lib/motion-presets";
+import { useI18n } from "@/lib/i18n/locale-provider";
+import { sectionPath } from "@/lib/i18n/routes";
 
 const UNDERWORLD_HOLD_MS = 1250;
 
@@ -17,6 +20,8 @@ function MobileUnderworldGate({ onComplete }: { onComplete: () => void }) {
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
   const mounted = useMounted();
+  const { dict } = useI18n();
+  const gate = dict.easterEggs.gate;
   const underworld = mounted && theme === "underworld";
   const timerRef = useRef<number | undefined>(undefined);
   const triggeredRef = useRef(false);
@@ -47,11 +52,7 @@ function MobileUnderworldGate({ onComplete }: { onComplete: () => void }) {
       setHolding(false);
       setTheme(underworld ? "dark" : "underworld");
       navigator.vibrate?.([45, 45, 90]);
-      toast(
-        underworld
-          ? "A superfície te aceita de volta."
-          : "O selo se rompeu. Bem-vindo ao submundo.",
-      );
+      toast(underworld ? gate.toastExit : gate.toastEnter);
       window.setTimeout(onComplete, 180);
     }, UNDERWORLD_HOLD_MS);
   }
@@ -62,11 +63,7 @@ function MobileUnderworldGate({ onComplete }: { onComplete: () => void }) {
       triggeredRef.current = false;
       return;
     }
-    toast(
-      underworld
-        ? "O caminho de volta exige que você mantenha o selo pressionado."
-        : "O símbolo responde à pressão. Mantenha-o pressionado.",
-    );
+    toast(underworld ? gate.hintExit : gate.hintEnter);
   }
 
   return (
@@ -78,15 +75,11 @@ function MobileUnderworldGate({ onComplete }: { onComplete: () => void }) {
     >
       <div className="border-ash bg-basalt/35 rounded-lg border p-3">
         <p className="text-ember mb-2 font-mono text-[0.625rem] tracking-[0.18em] uppercase opacity-75 select-none">
-          {"// eco encontrado"}
+          {gate.eyebrow}
         </p>
         <button
           type="button"
-          aria-label={
-            underworld
-              ? "Mantenha pressionado para voltar à superfície"
-              : "Mantenha pressionado para entrar no submundo"
-          }
+          aria-label={underworld ? gate.ariaExit : gate.ariaEnter}
           onPointerDown={(event) => {
             if (event.button !== 0) return;
             event.currentTarget.setPointerCapture(event.pointerId);
@@ -150,12 +143,10 @@ function MobileUnderworldGate({ onComplete }: { onComplete: () => void }) {
           </span>
           <span className="flex flex-col gap-0.5">
             <span className="text-bone font-mono text-xs tracking-wide uppercase">
-              {underworld
-                ? "Retornar à superfície"
-                : "Há algo sob a superfície"}
+              {underworld ? gate.titleExit : gate.titleEnter}
             </span>
             <span className="font-mono text-[0.6875rem] opacity-70">
-              mantenha pressionado
+              {gate.hint}
             </span>
           </span>
         </button>
@@ -168,6 +159,8 @@ export function MobileNav() {
   const [open, setOpen] = useState(false);
   const mounted = useMounted();
   const scrollTo = useSmoothScroll();
+  const router = useRouter();
+  const { locale, dict } = useI18n();
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const pendingHrefRef = useRef<string | null>(null);
@@ -239,8 +232,14 @@ export function MobileNav() {
     const href = pendingHrefRef.current;
     if (!href) return;
     pendingHrefRef.current = null;
-    scrollTo(href);
-  }, [open, scrollTo]);
+    // Same rule as the desktop nav: from a case study there is no section to
+    // scroll to, so go home to the anchor instead of clicking into nothing.
+    if (document.querySelector(href)) {
+      scrollTo(href);
+      return;
+    }
+    router.push(sectionPath(locale, href));
+  }, [open, scrollTo, router, locale]);
 
   function go(href: string) {
     pendingHrefRef.current = href;
@@ -254,7 +253,7 @@ export function MobileNav() {
         type="button"
         onClick={() => setOpen(true)}
         aria-expanded={open}
-        aria-label="Abrir menu"
+        aria-label={dict.nav.openMenu}
         data-cursor="hover"
         className="rounded-pill border-ash text-smoke hover:border-molten hover:text-bone inline-flex size-9 items-center justify-center border transition-colors md:hidden"
       >
@@ -263,58 +262,58 @@ export function MobileNav() {
 
       {mounted
         ? createPortal(
-          <AnimatePresence>
-            {open ? (
-              <motion.div
-                key="mobile-navigation"
-                ref={panelRef}
-                role="dialog"
-                aria-modal="true"
-                aria-label="Menu de navegação"
-                data-lenis-prevent
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.25 }}
-                className="bg-abyss fixed inset-0 z-[var(--z-palette)] isolate flex h-dvh min-h-dvh w-full flex-col overflow-y-auto overscroll-contain md:hidden"
-              >
-                <div className="container-hades flex h-16 shrink-0 items-center justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setOpen(false)}
-                    aria-label="Fechar menu"
-                    className="rounded-pill border-ash text-smoke hover:border-molten hover:text-bone inline-flex size-9 items-center justify-center border"
-                  >
-                    <X size={18} strokeWidth={1.5} />
-                  </button>
-                </div>
-                <motion.ul
-                  variants={staggerContainer}
-                  initial="hidden"
-                  animate="visible"
-                  className="container-hades flex flex-1 flex-col justify-center gap-2"
+            <AnimatePresence>
+              {open ? (
+                <motion.div
+                  key="mobile-navigation"
+                  ref={panelRef}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label={dict.nav.menuLabel}
+                  data-lenis-prevent
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="bg-abyss fixed inset-0 z-[var(--z-palette)] isolate flex h-dvh min-h-dvh w-full flex-col overflow-y-auto overscroll-contain md:hidden"
                 >
-                  {navItems.map((item) => (
-                    <motion.li key={item.id} variants={fadeUpItem}>
-                      <a
-                        href={item.href}
-                        onClick={(event) => {
-                          event.preventDefault();
-                          go(item.href);
-                        }}
-                        className="font-display text-bone hover:text-molten text-4xl transition-colors"
-                      >
-                        {item.label.pt}
-                      </a>
-                    </motion.li>
-                  ))}
-                </motion.ul>
-                <MobileUnderworldGate onComplete={() => setOpen(false)} />
-              </motion.div>
-            ) : null}
-          </AnimatePresence>,
-          document.body,
-        )
+                  <div className="container-hades flex h-16 shrink-0 items-center justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setOpen(false)}
+                      aria-label={dict.nav.closeMenu}
+                      className="rounded-pill border-ash text-smoke hover:border-molten hover:text-bone inline-flex size-9 items-center justify-center border"
+                    >
+                      <X size={18} strokeWidth={1.5} />
+                    </button>
+                  </div>
+                  <motion.ul
+                    variants={staggerContainer}
+                    initial="hidden"
+                    animate="visible"
+                    className="container-hades flex flex-1 flex-col justify-center gap-2"
+                  >
+                    {navItems.map((item) => (
+                      <motion.li key={item.id} variants={fadeUpItem}>
+                        <a
+                          href={item.href}
+                          onClick={(event) => {
+                            event.preventDefault();
+                            go(item.href);
+                          }}
+                          className="font-display text-bone hover:text-molten text-4xl transition-colors"
+                        >
+                          {item.label[locale]}
+                        </a>
+                      </motion.li>
+                    ))}
+                  </motion.ul>
+                  <MobileUnderworldGate onComplete={() => setOpen(false)} />
+                </motion.div>
+              ) : null}
+            </AnimatePresence>,
+            document.body,
+          )
         : null}
     </>
   );

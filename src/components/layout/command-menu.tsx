@@ -7,13 +7,24 @@ import {
   useEffect,
   useState,
 } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Command } from "cmdk";
 import { useTheme } from "next-themes";
-import { ArrowUpRight, Copy, Download, Flame, Palette } from "lucide-react";
+import {
+  ArrowUpRight,
+  Copy,
+  Download,
+  Flame,
+  Languages,
+  Palette,
+} from "lucide-react";
 import { navItems, siteConfig } from "@/lib/site-config";
 import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
 import { downloadFile } from "@/lib/utils";
 import { useToast } from "@/components/ui/toast";
+import { useI18n } from "@/lib/i18n/locale-provider";
+import { defaultLocale, type Locale } from "@/lib/i18n/config";
+import { sectionPath, switchLocalePath } from "@/lib/i18n/routes";
 
 interface CommandMenuContextValue {
   open: boolean;
@@ -61,9 +72,15 @@ function CommandMenu() {
   const { open, setOpen } = useCommandMenu();
   const { setTheme, resolvedTheme } = useTheme();
   const scrollTo = useSmoothScroll();
+  const router = useRouter();
+  const pathname = usePathname();
   const { toast } = useToast();
+  const { locale, dict } = useI18n();
   const [search, setSearch] = useState("");
   const showSecret = search.toLowerCase().includes("hades");
+
+  const t = dict.commandMenu;
+  const target: Locale = locale === defaultLocale ? "en" : defaultLocale;
 
   const run = useCallback(
     (action: () => void) => {
@@ -73,86 +90,105 @@ function CommandMenu() {
     [setOpen],
   );
 
+  const goToSection = useCallback(
+    (href: string) => {
+      if (document.querySelector(href)) {
+        scrollTo(href);
+        return;
+      }
+      router.push(sectionPath(locale, href));
+    },
+    [scrollTo, router, locale],
+  );
+
   return (
     <Command.Dialog
       open={open}
       onOpenChange={setOpen}
-      label="Paleta de comandos"
+      label={t.label}
       shouldFilter
     >
       <Command.Input
         value={search}
         onValueChange={setSearch}
-        placeholder="Buscar ou navegar…"
+        placeholder={t.placeholder}
       />
       <Command.List>
-        <Command.Empty>Nenhum resultado.</Command.Empty>
+        <Command.Empty>{t.empty}</Command.Empty>
 
-        <Command.Group heading="Navegar">
+        <Command.Group heading={t.groupNav}>
           {navItems.map((item) => (
             <Command.Item
               key={item.id}
-              value={`navegar ${item.label.pt}`}
-              onSelect={() => run(() => scrollTo(item.href))}
+              value={`${t.keywords.nav} ${item.label[locale]}`}
+              onSelect={() => run(() => goToSection(item.href))}
             >
-              {item.label.pt}
+              {item.label[locale]}
             </Command.Item>
           ))}
         </Command.Group>
 
-        <Command.Group heading="Ações">
+        <Command.Group heading={t.groupActions}>
           <Command.Item
-            value="copiar email contato"
+            value={t.keywords.copyEmail}
             onSelect={() =>
               run(() => {
                 void navigator.clipboard?.writeText(siteConfig.email);
-                toast("E-mail copiado");
+                toast(dict.common.emailCopied);
               })
             }
           >
-            <Copy size={16} strokeWidth={1.5} /> Copiar e-mail
+            <Copy size={16} strokeWidth={1.5} /> {t.copyEmail}
           </Command.Item>
           <Command.Item
-            value="baixar cv curriculo"
+            value={t.keywords.downloadCv}
             onSelect={() =>
               run(() => {
                 downloadFile(siteConfig.cvUrl, siteConfig.cvFileName);
-                toast("Baixando currículo…");
+                toast(dict.common.downloadingCv);
               })
             }
           >
-            <Download size={16} strokeWidth={1.5} /> Baixar CV
+            <Download size={16} strokeWidth={1.5} /> {t.downloadCv}
           </Command.Item>
           <Command.Item
-            value="abrir github"
+            value={t.keywords.switchLanguage}
+            onSelect={() =>
+              run(() => router.push(switchLocalePath(pathname, target)))
+            }
+          >
+            <Languages size={16} strokeWidth={1.5} /> {t.switchLanguage}
+          </Command.Item>
+          <Command.Item
+            value={t.keywords.openGithub}
             onSelect={() =>
               run(() => window.open(siteConfig.links.github, "_blank"))
             }
           >
-            <ArrowUpRight size={16} strokeWidth={1.5} /> Abrir GitHub
+            <ArrowUpRight size={16} strokeWidth={1.5} /> {t.openGithub}
           </Command.Item>
           <Command.Item
-            value="mudar tema claro escuro"
+            value={t.keywords.switchTheme}
             onSelect={() =>
               run(() => setTheme(resolvedTheme === "light" ? "dark" : "light"))
             }
           >
-            <Palette size={16} strokeWidth={1.5} /> Mudar tema
+            <Palette size={16} strokeWidth={1.5} /> {t.switchTheme}
           </Command.Item>
         </Command.Group>
 
         {showSecret ? (
-          <Command.Group heading="Secreto">
+          <Command.Group heading={t.groupSecret}>
             <Command.Item
-              value="hades descer ao submundo underworld"
+              value={t.keywords.descend}
               onSelect={() =>
                 run(() => {
                   setTheme("underworld");
-                  toast("Você desceu ao submundo.");
+                  toast(t.descendToast);
                 })
               }
             >
-              <Flame size={16} strokeWidth={1.5} /> Descer ao submundo
+              <Flame size={16} strokeWidth={1.5} /> {t.descend}
             </Command.Item>
           </Command.Group>
         ) : null}

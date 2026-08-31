@@ -2,10 +2,20 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { Reveal } from "@/components/ui/reveal";
 import { ProjectCard } from "@/components/sections/project-card";
 import { SmoothLink } from "@/components/ui/smooth-link";
-import { projects } from "@/lib/projects";
+import { localizedProjects } from "@/lib/projects";
 import { ScrollSection } from "@/components/layout/scroll-flow";
+import type { Locale } from "@/lib/i18n/config";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 
-export function Projects() {
+export function Projects({
+  locale,
+  dict,
+}: {
+  locale: Locale;
+  dict: Dictionary;
+}) {
+  const projects = localizedProjects(locale);
+
   return (
     <ScrollSection
       id="projetos"
@@ -13,15 +23,15 @@ export function Projects() {
       flowStrength={18}
     >
       <SectionHeading
-        eyebrow="projetos"
-        title="Coisas que eu construí."
-        description="Em cada um eu conto o que queria resolver, como resolvi e o que faria diferente hoje."
+        eyebrow={dict.projects.eyebrow}
+        title={dict.projects.title}
+        description={dict.projects.description}
       />
 
       <div className="mt-10 flex flex-col gap-6">
         {projects.map((project, index) => (
           <Reveal key={project.slug} delay={index * 0.06}>
-            <ProjectCard project={project} />
+            <ProjectCard project={project} locale={locale} dict={dict} />
           </Reveal>
         ))}
       </div>
@@ -32,7 +42,7 @@ export function Projects() {
           data-cursor="hover"
           className="link-underline text-smoke text-sm hover:bg-[length:100%_1px]"
         >
-          Tem mais coisa no meu GitHub ↓
+          {dict.projects.moreOnGithub}
         </SmoothLink>
       </div>
     </ScrollSection>

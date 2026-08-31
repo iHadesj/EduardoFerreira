@@ -4,6 +4,7 @@ import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMounted } from "@/hooks/use-mounted";
+import { useI18n } from "@/lib/i18n/locale-provider";
 
 /**
  * Cycles dark ↔ light (the secret "underworld" theme is driven by the Fase 7
@@ -13,6 +14,7 @@ import { useMounted } from "@/hooks/use-mounted";
 export function ThemeToggle({ className }: { className?: string }) {
   const { setTheme, resolvedTheme } = useTheme();
   const mounted = useMounted();
+  const { dict } = useI18n();
 
   const isLight = resolvedTheme === "light";
 
@@ -23,9 +25,9 @@ export function ThemeToggle({ className }: { className?: string }) {
       aria-label={
         mounted
           ? isLight
-            ? "Ativar tema escuro"
-            : "Ativar tema claro"
-          : "Alternar tema"
+            ? dict.common.themeToDark
+            : dict.common.themeToLight
+          : dict.common.themeToggle
       }
       onClick={() => setTheme(isLight ? "dark" : "light")}
       className={cn(

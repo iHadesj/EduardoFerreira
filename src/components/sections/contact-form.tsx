@@ -5,6 +5,8 @@ import { submitContact, type ContactState } from "@/lib/actions/contact";
 import { useToast } from "@/components/ui/toast";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/locale-provider";
+import type { Locale } from "@/lib/i18n/config";
 
 const INITIAL: ContactState = { status: "idle" };
 
@@ -37,17 +39,19 @@ function Field({
   );
 }
 
-export function ContactForm() {
+export function ContactForm({ locale }: { locale: Locale }) {
   const [state, formAction, pending] = useActionState(submitContact, INITIAL);
+  const { dict } = useI18n();
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
+  const t = dict.contactForm;
 
   useEffect(() => {
     if (state.status === "success") {
-      toast(state.message ?? "Mensagem enviada.");
+      toast(state.message ?? t.fallbackSuccess);
       formRef.current?.reset();
     }
-  }, [state, toast]);
+  }, [state, toast, t.fallbackSuccess]);
 
   const fe = state.fieldErrors;
 
@@ -58,12 +62,16 @@ export function ContactForm() {
       aria-busy={pending}
       className="flex w-full max-w-md flex-col gap-4"
     >
+      {/* The action runs on the server, where the URL is not available — this
+          is how it knows which locale to answer in. */}
+      <input type="hidden" name="locale" value={locale} />
+
       {/* Honeypot — visually hidden, off the tab order. */}
       <div
         aria-hidden
         className="absolute -left-[9999px] h-0 w-0 overflow-hidden"
       >
-        <label htmlFor="website">Não preencha este campo</label>
+        <label htmlFor="website">{t.honeypot}</label>
         <input
           id="website"
           name="website"
@@ -73,7 +81,7 @@ export function ContactForm() {
         />
       </div>
 
-      <Field id="name" label="Nome" error={fe?.name?.[0]}>
+      <Field id="name" label={t.name} error={fe?.name?.[0]}>
         <input
           id="name"
           name="name"
@@ -85,7 +93,7 @@ export function ContactForm() {
         />
       </Field>
 
-      <Field id="email" label="E-mail" error={fe?.email?.[0]}>
+      <Field id="email" label={t.email} error={fe?.email?.[0]}>
         <input
           id="email"
           name="email"
@@ -97,7 +105,7 @@ export function ContactForm() {
         />
       </Field>
 
-      <Field id="message" label="Mensagem" error={fe?.message?.[0]}>
+      <Field id="message" label={t.message} error={fe?.message?.[0]}>
         <textarea
           id="message"
           name="message"
@@ -114,7 +122,7 @@ export function ContactForm() {
         data-cursor="hover"
         className={cn(buttonVariants({ variant: "primary", size: "lg" }))}
       >
-        {pending ? "Enviando…" : "Enviar mensagem"}
+        {pending ? t.sending : t.submit}
       </button>
 
       {state.status === "error" && !fe ? (

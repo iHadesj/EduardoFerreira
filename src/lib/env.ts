@@ -6,7 +6,10 @@ import { siteConfig } from "@/lib/site-config";
  * and take the whole schema down with it. Treat blank as "not set".
  */
 const blankAsUndefined = <T extends z.ZodType>(schema: T) =>
-  z.preprocess((v) => (typeof v === "string" && v.trim() === "" ? undefined : v), schema);
+  z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    schema,
+  );
 
 /**
  * Environment schema. Everything is optional in dev so onboarding never

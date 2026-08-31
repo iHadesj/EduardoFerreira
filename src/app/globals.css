@@ -493,6 +493,170 @@
 
 /* Global reduced-motion kill-switch (§2.7) — covers CSS animations/transitions
    not already handled in JS (marquee, status ping, crossfades, scrollbar). */
+/* About: the story and identity panel share one visual axis. The irregular
+   silhouettes echo the Mobius without tilting the readable content. */
+.about-composition {
+  position: relative;
+  display: grid;
+  gap: clamp(3rem, 8vw, 5.5rem);
+  align-items: center;
+}
+
+.about-composition::before {
+  position: absolute;
+  z-index: -1;
+  top: 30%;
+  right: 2%;
+  width: min(44vw, 32rem);
+  aspect-ratio: 1.25;
+  content: "";
+  border-radius: 42% 58% 66% 34% / 48% 38% 62% 52%;
+  background: radial-gradient(
+    ellipse,
+    color-mix(in oklab, var(--color-molten) 10%, transparent),
+    transparent 68%
+  );
+  filter: blur(1.8rem);
+  pointer-events: none;
+}
+
+.about-copy {
+  min-width: 0;
+}
+
+.about-story {
+  position: relative;
+  display: grid;
+  max-width: 63ch;
+  gap: 1.25rem;
+  margin-top: clamp(2rem, 5vw, 3.5rem);
+  padding-left: 1.7rem;
+  color: var(--color-smoke);
+}
+
+.about-story::before {
+  position: absolute;
+  top: 0.55rem;
+  bottom: 0.55rem;
+  left: 0.3rem;
+  width: 1px;
+  content: "";
+  background: linear-gradient(
+    to bottom,
+    var(--color-molten),
+    color-mix(in oklab, var(--color-styx) 60%, transparent),
+    transparent
+  );
+}
+
+.about-story__step {
+  position: relative;
+  line-height: 1.7;
+}
+
+.about-story__step::before {
+  position: absolute;
+  top: 0.62rem;
+  left: -1.62rem;
+  width: 0.45rem;
+  height: 0.45rem;
+  content: "";
+  border: 1px solid var(--color-molten);
+  border-radius: 48% 52% 43% 57% / 56% 42% 58% 44%;
+  background: var(--color-abyss);
+  box-shadow: 0 0 0.85rem
+    color-mix(in oklab, var(--color-molten) 42%, transparent);
+}
+
+.about-identity {
+  position: relative;
+  width: min(100%, 23rem);
+  justify-self: center;
+}
+
+.about-portrait-frame {
+  position: relative;
+  width: min(88%, 19rem);
+  margin-inline: auto;
+}
+
+.about-portrait-frame::before {
+  position: absolute;
+  inset: -12%;
+  z-index: -1;
+  content: "";
+  border-radius: 43% 57% 62% 38% / 36% 45% 55% 64%;
+  background: radial-gradient(
+    ellipse,
+    color-mix(in oklab, var(--color-molten) 17%, transparent),
+    transparent 69%
+  );
+  filter: blur(1.2rem);
+}
+
+.about-portrait-frame .portrait {
+  border-radius: 41% 59% 48% 52% / 37% 43% 57% 63%;
+}
+
+.about-facts {
+  position: relative;
+  z-index: 1;
+  width: 94%;
+  margin-top: -2.25rem;
+  margin-left: auto;
+  padding: 1.15rem 1.2rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklab, var(--color-ash) 88%, transparent);
+  border-radius: 2rem 1.1rem 2.35rem 1.25rem;
+  background: linear-gradient(
+    145deg,
+    color-mix(in oklab, var(--color-molten) 5%, var(--color-basalt)),
+    color-mix(in oklab, var(--color-basalt) 94%, transparent)
+  );
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--color-bone) 7%, transparent),
+    0 1.5rem 4rem -2.4rem
+      color-mix(in oklab, var(--color-molten) 26%, transparent);
+  backdrop-filter: blur(1rem);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+}
+
+.about-fact {
+  display: grid;
+  grid-template-columns: minmax(4.7rem, 0.72fr) minmax(0, 1.5fr);
+  gap: 1rem;
+  align-items: baseline;
+  padding-block: 0.65rem;
+  border-bottom: 1px solid
+    color-mix(in oklab, var(--color-ash) 58%, transparent);
+}
+
+.about-fact dt {
+  color: var(--color-smoke);
+}
+
+.about-fact dd {
+  color: var(--color-bone);
+  text-align: left;
+}
+
+.about-fact--status {
+  align-items: center;
+  padding-bottom: 0.15rem;
+  border-bottom: 0;
+}
+
+@media (min-width: 52rem) {
+  .about-composition {
+    grid-template-columns: minmax(0, 1.55fr) minmax(18rem, 0.68fr);
+  }
+
+  .about-identity {
+    justify-self: end;
+  }
+}
+
 /* Capability map: namespaced styles keep each discipline visually distinct.
    Motion uses compositor-only transforms; the track is the sole continuous
    scroll-linked value. */
@@ -555,7 +719,7 @@
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 0.75rem;
+  gap: clamp(0.8rem, 1.6vw, 1.15rem);
   margin-top: clamp(2.5rem, 6vw, 4.5rem);
 }
 
@@ -564,43 +728,34 @@
   z-index: 2;
   top: 0.75rem;
   bottom: 0.75rem;
-  left: -0.72rem;
-  width: 1px;
+  left: -1.15rem;
+  width: 1.45rem;
+  height: calc(100% - 1.5rem);
   overflow: visible;
-  background: color-mix(in oklab, var(--color-ash) 72%, transparent);
   pointer-events: none;
 }
 
-.tech-stack__scroll-progress {
-  position: absolute;
-  inset: 0;
-  display: block;
-  background: linear-gradient(
-    to bottom,
-    var(--color-molten),
-    var(--color-styx) 52%,
-    var(--color-ember)
-  );
-  box-shadow: 0 0 0.85rem
-    color-mix(in oklab, var(--color-molten) 46%, transparent);
-  transform-origin: top;
+.tech-stack__scroll-path {
+  fill: none;
+  stroke-linecap: round;
 }
 
-.tech-stack__scroll-progress::after {
-  position: absolute;
-  right: -0.2rem;
-  bottom: -0.15rem;
-  width: 0.42rem;
-  height: 0.42rem;
-  content: "";
-  border-radius: 999px;
-  background: var(--color-ember);
-  box-shadow: 0 0 0.8rem
-    color-mix(in oklab, var(--color-ember) 74%, transparent);
+.tech-stack__scroll-path--base {
+  stroke: color-mix(in oklab, var(--color-ash) 72%, transparent);
+  stroke-width: 1;
+}
+
+.tech-stack__scroll-path--active {
+  stroke: var(--color-molten);
+  stroke-width: 2;
+  filter: drop-shadow(
+    0 0 0.36rem color-mix(in oklab, var(--color-molten) 64%, transparent)
+  );
 }
 
 .tech-stack-card {
   --stack-accent: var(--color-molten);
+  --stack-radius: 1.9rem 1.15rem 2.5rem 1.35rem;
 
   position: relative;
   display: flex;
@@ -611,13 +766,19 @@
   overflow: hidden;
   border: 1px solid
     color-mix(in oklab, var(--stack-accent) 24%, var(--color-ash));
-  border-radius: var(--radius-lg);
-  background: linear-gradient(
-    145deg,
-    color-mix(in oklab, var(--stack-accent) 7%, var(--color-basalt)) 0%,
-    color-mix(in oklab, var(--color-basalt) 86%, transparent) 52%,
-    color-mix(in oklab, var(--color-abyss) 92%, transparent) 100%
-  );
+  border-radius: var(--stack-radius);
+  background:
+    radial-gradient(
+      ellipse at 92% 3%,
+      color-mix(in oklab, var(--stack-accent) 10%, transparent),
+      transparent 42%
+    ),
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--stack-accent) 6%, var(--color-basalt)) 0%,
+      color-mix(in oklab, var(--color-basalt) 88%, transparent) 55%,
+      color-mix(in oklab, var(--color-abyss) 92%, transparent) 100%
+    );
   box-shadow: inset 0 1px 0
     color-mix(in oklab, var(--stack-accent) 12%, transparent);
   isolation: isolate;
@@ -626,8 +787,8 @@
 .tech-stack-card::before {
   position: absolute;
   top: 0;
-  right: 1.5rem;
-  left: 1.5rem;
+  right: 12%;
+  width: 42%;
   height: 1px;
   content: "";
   background: linear-gradient(
@@ -641,18 +802,35 @@
 .tech-stack-card::after {
   position: absolute;
   z-index: -1;
-  top: -6rem;
-  right: -5rem;
-  width: 14rem;
-  height: 14rem;
+  top: -5rem;
+  right: -4rem;
+  width: 13rem;
+  height: 11rem;
   content: "";
-  border-radius: 999px;
+  border-radius: 43% 57% 67% 33% / 37% 45% 55% 63%;
   background: radial-gradient(
     circle,
     color-mix(in oklab, var(--stack-accent) 15%, transparent),
     transparent 67%
   );
   pointer-events: none;
+  transform: rotate(17deg);
+}
+
+.tech-stack-card:nth-of-type(2) {
+  --stack-radius: 1.2rem 2.4rem 1.35rem 2.1rem;
+}
+
+.tech-stack-card:nth-of-type(3) {
+  --stack-radius: 2.35rem 1.25rem 1.75rem 1.15rem;
+}
+
+.tech-stack-card:nth-of-type(4) {
+  --stack-radius: 1.25rem 2.2rem 2.45rem 1.45rem;
+}
+
+.tech-stack-card:nth-of-type(5) {
+  --stack-radius: 2.15rem 1.25rem 1.25rem 2.4rem;
 }
 
 .tech-stack-card__scan {
@@ -716,7 +894,7 @@
   place-items: center;
   color: var(--stack-accent);
   border: 1px solid color-mix(in oklab, var(--stack-accent) 34%, transparent);
-  border-radius: 0.75rem;
+  border-radius: 42% 58% 52% 48% / 38% 46% 54% 62%;
   background: color-mix(in oklab, var(--stack-accent) 8%, transparent);
   font-family: var(--font-mono);
   font-size: 0.72rem;
@@ -776,7 +954,7 @@
   color: color-mix(in oklab, var(--color-bone) 82%, var(--stack-accent));
   border: 1px solid
     color-mix(in oklab, var(--stack-accent) 18%, var(--color-ash));
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   background: color-mix(in oklab, var(--color-abyss) 62%, transparent);
   font-family: var(--font-mono);
   font-size: 0.67rem;
@@ -816,7 +994,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .tech-stack-card:last-child {
+  .tech-stack-card:last-of-type {
     grid-column: 1 / -1;
   }
 
@@ -830,20 +1008,20 @@
     grid-template-columns: repeat(12, minmax(0, 1fr));
   }
 
-  .tech-stack-card:nth-child(1) {
+  .tech-stack-card:nth-of-type(1) {
     grid-column: span 7;
   }
 
-  .tech-stack-card:nth-child(2) {
+  .tech-stack-card:nth-of-type(2) {
     grid-column: span 5;
   }
 
-  .tech-stack-card:nth-child(n + 3) {
+  .tech-stack-card:nth-of-type(n + 3) {
     grid-column: span 4;
     min-height: 21rem;
   }
 
-  .tech-stack-card:nth-child(-n + 2) {
+  .tech-stack-card:nth-of-type(-n + 2) {
     min-height: 20.5rem;
   }
 
@@ -869,14 +1047,12 @@
 
   .tech-stack-card {
     transition:
-      transform 260ms var(--ease-out-expo),
       border-color 260ms var(--ease-out-soft),
       box-shadow 260ms var(--ease-out-soft);
   }
 
   .tech-stack-card:hover {
     z-index: 1;
-    transform: translateY(-4px);
     border-color: color-mix(
       in oklab,
       var(--stack-accent) 48%,
@@ -905,7 +1081,320 @@
   }
 }
 
+/* ──────────────────────────────────────────────────────────────────────────
+   View Transitions — project card → case study.
+
+   The cover and the title on both pages share a `view-transition-name` (see
+   lib/view-transition.ts), so the browser morphs them across the navigation
+   instead of cutting. Named elements are lifted out of the root snapshot, so
+   the root rule below only crossfades everything else.
+   ────────────────────────────────────────────────────────────────────────── */
+::view-transition-group(*) {
+  animation-duration: 460ms;
+  animation-timing-function: var(--ease-out-expo);
+}
+
+::view-transition-old(root) {
+  animation: vt-fade-out 180ms var(--ease-out-soft) both;
+}
+
+::view-transition-new(root) {
+  animation: vt-fade-in 300ms var(--ease-out-expo) both;
+}
+
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Availability pill — hero eyebrow + About "status" row.
+   ────────────────────────────────────────────────────────────────────────── */
+.availability-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid
+    color-mix(in oklab, var(--color-molten) 32%, var(--color-ash));
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--color-molten) 8%, transparent);
+  color: color-mix(in oklab, var(--color-bone) 86%, var(--color-molten));
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.availability-pill__dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--color-molten);
+  animation: availability-pulse 2.6s var(--ease-out-soft) infinite;
+}
+
+/* Closed state carries its meaning in colour, not motion — so it still reads
+   correctly once the reduced-motion block below stops the pulse. */
+.availability-pill.is-closed {
+  border-color: var(--color-ash);
+  background: transparent;
+  color: var(--color-smoke);
+}
+
+.availability-pill.is-closed .availability-pill__dot {
+  background: var(--color-smoke);
+  animation: none;
+}
+
+@keyframes availability-pulse {
+  0% {
+    box-shadow: 0 0 0 0
+      color-mix(in oklab, var(--color-molten) 55%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 0.42rem transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Portrait — duotone mapped onto theme tokens.
+
+   The photo is desaturated, then `lighten` raises its blacks to --duo-shadow
+   and `darken` lowers its whites to --duo-highlight. Elysium overrides the two
+   because its background token is light: reusing --color-abyss there would
+   flood the image instead of anchoring its shadows.
+   ────────────────────────────────────────────────────────────────────────── */
+.portrait {
+  --duo-shadow: var(--color-abyss);
+  --duo-highlight: color-mix(
+    in oklab,
+    var(--color-molten) 76%,
+    var(--color-bone)
+  );
+
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid var(--color-ash);
+  border-radius: var(--radius-lg);
+  background: var(--color-basalt);
+}
+
+html[data-theme="light"] .portrait {
+  --duo-shadow: #241d2b;
+  --duo-highlight: color-mix(in oklab, var(--color-molten) 26%, #ffffff);
+}
+
+.portrait__img {
+  object-fit: cover;
+  object-position: center 22%;
+  filter: grayscale(1) contrast(1.14) brightness(0.97);
+}
+
+.portrait__shadow {
+  position: absolute;
+  inset: 0;
+  background: var(--duo-shadow);
+  mix-blend-mode: lighten;
+  pointer-events: none;
+}
+
+.portrait__highlight {
+  position: absolute;
+  inset: 0;
+  background: var(--duo-highlight);
+  mix-blend-mode: darken;
+  pointer-events: none;
+}
+
+/* Settles the bottom edge into the page so the square does not float. */
+.portrait__sheen {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    165deg,
+    transparent 45%,
+    color-mix(in oklab, var(--color-abyss) 58%, transparent) 100%
+  );
+  pointer-events: none;
+}
+
+.portrait--empty {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.6rem;
+  border-style: dashed;
+  background: linear-gradient(
+    150deg,
+    color-mix(in oklab, var(--color-molten) 9%, var(--color-basalt)),
+    var(--color-abyss)
+  );
+}
+
+.portrait__monogram {
+  background-image: var(--gradient-molten);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  font-family: var(--font-display);
+  font-size: 3.25rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.portrait__pending {
+  color: var(--color-smoke);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Decision log — the structured half of a case study.
+   ────────────────────────────────────────────────────────────────────────── */
+.decision-log {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 2.25rem;
+  padding: 0;
+  list-style: none;
+}
+
+.decision {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0 1.1rem;
+  padding: 1.25rem 1.35rem;
+  border: 1px solid var(--color-ash);
+  border-left: 2px solid
+    color-mix(in oklab, var(--color-molten) 45%, var(--color-ash));
+  border-radius: var(--radius-md);
+  background: color-mix(in oklab, var(--color-basalt) 74%, transparent);
+}
+
+.decision__index {
+  color: color-mix(in oklab, var(--color-molten) 68%, var(--color-smoke));
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  line-height: 1.7;
+  letter-spacing: 0.08em;
+}
+
+.decision__body {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.decision__row {
+  display: grid;
+  grid-template-columns: 6rem minmax(0, 1fr);
+  gap: 0.2rem 0.9rem;
+  align-items: baseline;
+}
+
+.decision__term {
+  color: var(--color-smoke);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.decision__value {
+  color: var(--color-smoke);
+  font-size: 0.925rem;
+  line-height: 1.6;
+}
+
+.decision__row--choice .decision__term {
+  color: var(--color-molten);
+}
+
+.decision__row--choice .decision__value {
+  color: var(--color-bone);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.decision__row--instead .decision__term {
+  color: color-mix(in oklab, var(--color-styx) 72%, var(--color-smoke));
+}
+
+/* The discarded option reads as discarded at a glance. */
+.decision__row--instead .decision__value {
+  text-decoration: line-through;
+  text-decoration-color: color-mix(
+    in oklab,
+    var(--color-smoke) 55%,
+    transparent
+  );
+  text-decoration-thickness: 1px;
+}
+
+.decision__row--cost .decision__term {
+  color: color-mix(in oklab, var(--color-ember) 78%, var(--color-smoke));
+}
+
+@media (max-width: 39.999rem) {
+  .decision {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.65rem;
+  }
+
+  .decision__row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .decision {
+    transition:
+      border-color 220ms var(--ease-out-soft),
+      background-color 220ms var(--ease-out-soft);
+  }
+
+  .decision:hover {
+    border-color: color-mix(
+      in oklab,
+      var(--color-molten) 26%,
+      var(--color-ash)
+    );
+    border-left-color: var(--color-molten);
+    background: color-mix(in oklab, var(--color-basalt) 92%, transparent);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  /* The `*` rule below does not reach the view-transition pseudo-tree, so the
+     navigation morph has to be switched off explicitly. */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+
   .scroll-flow-ambient {
     display: none;
   }

@@ -5,6 +5,8 @@ import { useTheme } from "next-themes";
 import { useToast } from "@/components/ui/toast";
 import { useKonami } from "@/hooks/use-konami";
 import { siteConfig } from "@/lib/site-config";
+import { useI18n } from "@/lib/i18n/locale-provider";
+import { fill } from "@/lib/i18n/format";
 
 const TRIDENT = `
       Ψ
@@ -18,16 +20,18 @@ const TRIDENT = `
 export function EasterEggs() {
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
+  const { dict } = useI18n();
+  const t = dict.easterEggs;
 
   const toggleUnderworld = useCallback(() => {
     if (theme === "underworld") {
       setTheme("dark");
-      toast("De volta à superfície.");
+      toast(t.toSurface);
     } else {
       setTheme("underworld");
-      toast("Você desceu ao submundo. (konami pra voltar)");
+      toast(t.toUnderworld);
     }
-  }, [theme, setTheme, toast]);
+  }, [theme, setTheme, toast, t.toSurface, t.toUnderworld]);
 
   useKonami(toggleUnderworld);
 
@@ -36,24 +40,24 @@ export function EasterEggs() {
     /* eslint-disable no-console */
     console.log(`%c${TRIDENT}`, "color:#e8a33d; font-family:monospace");
     console.log(
-      `%c// procurando easter eggs? manda um oi: ${siteConfig.email}  ·  ↑↑↓↓←→←→ B A`,
+      `%c${fill(t.consoleHint, { email: siteConfig.email })}`,
       "color:#9a92a8",
     );
     /* eslint-enable no-console */
-  }, []);
+  }, [t.consoleHint]);
 
   // Charming tab-title swap when the user leaves the tab.
   useEffect(() => {
     const original = document.title;
     const onVisibility = () => {
-      document.title = document.hidden ? "👁 o submundo aguarda…" : original;
+      document.title = document.hidden ? t.tabTitle : original;
     };
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
       document.removeEventListener("visibilitychange", onVisibility);
       document.title = original;
     };
-  }, []);
+  }, [t.tabTitle]);
 
   return null;
 }

@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { motion, useMotionValueEvent, useScroll } from "motion/react";
 import { useReducedMotionSafe } from "@/hooks/use-reduced-motion-safe";
+import { useI18n } from "@/lib/i18n/locale-provider";
 
 /** Vertical line with a descending pulse. Hides on reduced motion / first scroll. */
 export function ScrollCue() {
   const reduced = useReducedMotionSafe();
+  const { dict } = useI18n();
   const { scrollY } = useScroll();
   const [hidden, setHidden] = useState(false);
 
@@ -27,7 +29,7 @@ export function ScrollCue() {
         />
       </div>
       <span className="text-smoke font-mono text-[0.625rem] tracking-widest uppercase">
-        scroll
+        {dict.scrollCue}
       </span>
     </div>
   );

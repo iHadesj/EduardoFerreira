@@ -22,6 +22,46 @@ metrics:
     value: JPA / PostgreSQL
   - label: Testes
     value: JUnit
+decisions:
+  - choice: JPA/Hibernate para a persistência
+    instead: JDBC cru com SQL espalhado pela base
+    because: O domínio fica mapeado em objetos e relações declarativas, legível sem caçar query.
+    cost: Abre mão do controle fino sobre cada consulta — por isso as que importam ficam explícitas em exemplos.sql, à vista.
+  - choice: PostgreSQL
+    instead: Um banco embarcado só para o exercício
+    because: Tipos e constraints empurram a integridade para o banco, não só para o código.
+  - choice: Camadas em MVC — controller, service, repository
+    instead: Regra de negócio dentro do controller
+    because: Controller traduz HTTP, service guarda a regra e repository fala com o banco, o que permite testar a regra isolada do transporte e da persistência.
+    cost: Mais arquivos e mais indireção do que um CRUD escrito em uma camada só.
+en:
+  title: Java API + PostgreSQL
+  summary: Relational persistence with JPA, MVC layering and a testable CRUD over PostgreSQL.
+  problem: Model the data and expose a CRUD cleanly, separating responsibilities and keeping the database under control.
+  coverAlt: Abstract representation of a layered Java API connected to a PostgreSQL database.
+  highlights:
+    - JPA mapping with explicit entities and relations
+    - MVC layering (controller → service → repository)
+    - Reference queries versioned in exemplos.sql
+  metrics:
+    - label: Language
+      value: Java
+    - label: Persistence
+      value: JPA / PostgreSQL
+    - label: Tests
+      value: JUnit
+  decisions:
+    - choice: JPA/Hibernate for persistence
+      instead: Raw JDBC with SQL spread across the codebase
+      because: The domain ends up mapped as objects and declarative relations, readable without hunting for a query.
+      cost: Gives up fine control over each query — which is why the ones that matter stay explicit in exemplos.sql, out in the open.
+    - choice: PostgreSQL
+      instead: An embedded database just for the exercise
+      because: Types and constraints push integrity into the database rather than leaving it all to the code.
+    - choice: MVC layering — controller, service, repository
+      instead: Business rules inside the controller
+      because: The controller translates HTTP, the service holds the rule and the repository talks to the database, which makes the rule testable apart from transport and persistence.
+      cost: More files and more indirection than a CRUD written in a single layer.
 ---
 
 ## O problema

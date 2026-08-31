@@ -8,12 +8,21 @@ import {
 import { GithubFeed } from "./github-feed";
 import { ContributionsHeatmap } from "./contributions-heatmap";
 import { ScrollSection } from "@/components/layout/scroll-flow";
+import type { Locale } from "@/lib/i18n/config";
+import { intlLocale } from "@/lib/i18n/config";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 
 /**
  * Server component: fetches page 1 + the heatmap directly via lib/github, so the
  * section never renders empty and the feed hydrates with initialData (no CLS).
  */
-export async function GithubActivity() {
+export async function GithubActivity({
+  locale,
+  dict,
+}: {
+  locale: Locale;
+  dict: Dictionary;
+}) {
   let initial: ReposPage = { items: [], nextPage: null };
   try {
     initial = await fetchRepos(1, 9);
@@ -32,19 +41,27 @@ export async function GithubActivity() {
       flowStrength={18}
     >
       <SectionHeading
-        eyebrow="github"
-        title="Meu GitHub, ao vivo."
-        description="Puxado direto da API, então é o que está lá de verdade — inclusive os dias em que eu não commitei nada."
+        eyebrow={dict.github.eyebrow}
+        title={dict.github.title}
+        description={dict.github.description}
       />
 
       {contributions ? (
         <div className="mt-10">
-          <ContributionsHeatmap data={contributions} />
+          <ContributionsHeatmap
+            data={contributions}
+            dict={dict}
+            intl={intlLocale[locale]}
+          />
         </div>
       ) : null}
 
       <div className="mt-10">
-        <GithubFeed initialData={initial} cutoff={cutoff} />
+        <GithubFeed
+          initialData={initial}
+          cutoff={cutoff}
+          intl={intlLocale[locale]}
+        />
       </div>
     </ScrollSection>
   );

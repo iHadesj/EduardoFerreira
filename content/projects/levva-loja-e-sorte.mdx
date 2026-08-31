@@ -23,6 +23,62 @@ metrics:
     value: "29"
   - label: Persistência
     value: 100% local
+decisions:
+  - choice: Dinheiro sempre em centavos inteiros
+    instead: Ponto flutuante para valores em reais
+    because: Toda entrada e saída passa por uma única operação de carteira que valida o valor, impede saldo negativo e registra o extrato — sem herdar erro de arredondamento binário.
+    cost: Toda exibição precisa atravessar uma camada de formatação.
+  - choice: Checkout transacional com estorno automático
+    instead: Debitar saldo, baixar estoque e gravar o pedido em passos soltos
+    because: Saldo, estoque e pedido são gravados na mesma transação do IndexedDB, e qualquer falha no meio dispara estorno na carteira antes de o carrinho ser limpo.
+    cost: O fluxo é mais verboso que um checkout ingênuo e ainda não cobre idempotência nem reserva concorrente de estoque.
+  - choice: Catálogo determinístico com seed fixa
+    instead: Gerar produtos aleatórios a cada execução
+    because: Os mesmos 400 produtos com IDs estáveis a cada carga tornam os testes previsíveis e mantêm favoritos, carrinho e pedidos válidos entre recargas.
+    cost: Publicar um produto novo significa mexer no gerador, não num banco.
+  - choice: Sorteio com crypto.getRandomValues e RTP declarado na interface
+    instead: Math.random com a vantagem da casa implícita
+    because: A mecânica principal não pode depender de um RNG previsível, e a vantagem da casa aparece na tela (92,13% no caça-níquel, 91,67% na roleta) em vez de ficar escondida.
+  - choice: Persistência inteira no navegador (IndexedDB + Zustand Persist)
+    instead: Backend autenticado com banco transacional
+    because: O projeto continua de pé anos depois sem servidor para pagar, e nada do usuário sai do navegador.
+    cost: Nada sincroniza entre dispositivos — é deliberadamente uma demonstração, não algo pronto para vender.
+en:
+  title: Levva — Store & Luck
+  summary: A complete fictional ecommerce — 400 products, a wallet in integer cents and a transactional checkout in the browser, with a casino as a deliberate counterpoint to buying.
+  problem: Show product reasoning and financial rigour across a whole purchase journey, with no backend and no real money.
+  highlights:
+    - Deterministic 400-product catalogue with a fixed seed and fuzzy search
+    - Money always in integer cents, with automatic refund on checkout failure
+    - Casino and gacha with the RTP stated in the UI and draws from crypto
+    - 29 tests covering wallet, RTP, gacha and persistence
+  metrics:
+    - label: Products
+      value: "400"
+    - label: Tests
+      value: "29"
+    - label: Persistence
+      value: 100% local
+  decisions:
+    - choice: Money is always integer cents
+      instead: Floating point for amounts in reais
+      because: Every credit and debit goes through one wallet operation that validates the amount, refuses a negative balance and records the statement — inheriting no binary rounding error.
+      cost: Every display has to pass through a formatting layer.
+    - choice: Transactional checkout with automatic refund
+      instead: Debiting the balance, decrementing stock and writing the order as loose steps
+      because: Balance, stock and order are written in the same IndexedDB transaction, and any failure mid-way refunds the wallet before the cart is cleared.
+      cost: The flow is wordier than a naive checkout and still covers neither idempotency nor concurrent stock reservation.
+    - choice: Deterministic catalogue from a fixed seed
+      instead: Generating random products on every run
+      because: The same 400 products with stable IDs on every load make tests predictable and keep favourites, cart and orders valid across reloads.
+      cost: Shipping a new product means touching the generator, not a database.
+    - choice: Draws from crypto.getRandomValues, with the RTP stated in the UI
+      instead: Math.random and an implicit house edge
+      because: The core mechanic cannot rest on a predictable RNG, and the house edge is on screen (92.13% on the slot, 91.67% on roulette) rather than hidden.
+    - choice: Persistence entirely in the browser (IndexedDB + Zustand Persist)
+      instead: An authenticated backend with a transactional database
+      because: The project still stands years later with no server to pay for, and nothing the user does leaves the browser.
+      cost: Nothing syncs across devices — it is deliberately a demonstration, not something ready to sell.
 ---
 
 ## O problema

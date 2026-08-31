@@ -23,6 +23,68 @@ metrics:
     value: "8"
   - label: Currículo
     value: Validado no build
+decisions:
+  - choice: Currículo é dado, não tela
+    instead: Cada parada como um componente próprio
+    because: As oito fases vivem em arquivos de dados com conceitos, desafios e critérios de aceite, então uma parada nova é conteúdo — as telas só renderizam.
+  - choice: Conteúdo validado antes de subir
+    instead: Confiar que o currículo está íntegro em tempo de execução
+    because: npm test roda os validadores de fonte e de currículo antes do build, então desafio sem resposta ou critério faltando derruba o build em vez de virar tela vazia no meio do túnel.
+    cost: Escrever conteúdo passa a exigir passar no validador, não só salvar o arquivo.
+  - choice: Tudo embarcado no bundle
+    instead: Carregar a próxima parada por API
+    because: Elimina a classe inteira de falhas que o túnel provoca — a aula não pode depender da rede, e não como degradação elegante e sim como modo normal de uso.
+    cost: Publicar conteúdo novo exige um novo deploy.
+  - choice: Editor próprio, com lint que explica o erro em português comum
+    instead: Monaco ou CodeMirror
+    because: Carregar um editor completo pesaria mais que o app inteiro, e a mensagem crua do runtime não ensina ninguém.
+    cost: O lint hoje explica o que está errado mas ainda não sugere o caminho até o certo.
+  - choice: Progresso local por linha, sem conta
+    instead: Login antes da primeira aula
+    because: Fechar o app e voltar dias depois cai exatamente onde parou, e criar conta é justamente o atrito que custaria o aluno nesse contexto.
+    cost: O progresso não sincroniza entre dispositivos.
+  - choice: Módulos de PROJETO e BOSS FINAL não abrem com quiz
+    instead: Tratar todo módulo como mais uma bateria de exercícios
+    because: Cada um declara entrega e critérios, e o aluno confirma critério por critério — exercício verifica fundamento, critério de aceite verifica se a coisa foi construída.
+en:
+  title: Rota Dev
+  summary: A study platform built for the commute — two learning lines to Faria Lima, a code editor, a linter that explains itself, and a syllabus validated at build time.
+  problem: People studying on the way to work lose the lesson in the tunnel — the platform had to run entirely on the client.
+  highlights:
+    - Two study lines — Web + React and Fullstack React + Java
+    - Editor with a test suite and a linter that explains errors in plain language
+    - The syllabus is data, validated by a script before every build
+    - An alternate build target for the Nintendo Switch browser
+  metrics:
+    - label: Lines
+      value: "2"
+    - label: Phases
+      value: "8"
+    - label: Syllabus
+      value: Validated at build
+  decisions:
+    - choice: The syllabus is data, not screens
+      instead: Every stop as its own component
+      because: The eight phases live in data files carrying concepts, challenges and acceptance criteria, so a new stop is content — the screens only render it.
+    - choice: Content validated before it ships
+      instead: Trusting the syllabus to be intact at runtime
+      because: npm test runs the source and syllabus validators before the build, so a challenge with no answer or a missing criterion breaks the build instead of becoming a blank screen inside a tunnel.
+      cost: Writing content now means passing the validator, not just saving the file.
+    - choice: Everything bundled
+      instead: Fetching the next stop from an API
+      because: It removes the entire class of failures the tunnel causes — the lesson cannot depend on the network, and not as graceful degradation but as the normal mode of use.
+      cost: Publishing new content requires a new deploy.
+    - choice: A hand-rolled editor with a linter that explains errors in plain language
+      instead: Monaco or CodeMirror
+      because: A full editor would weigh more than the whole app, and a raw runtime message teaches nobody.
+      cost: The linter says what is wrong but does not yet suggest the way to right.
+    - choice: Local per-line progress, no account
+      instead: A login before the first lesson
+      because: Closing the app and coming back days later lands exactly where you stopped, and signing up is precisely the friction that would cost the student here.
+      cost: Progress does not sync across devices.
+    - choice: PROJECT and FINAL BOSS modules do not open with a quiz
+      instead: Treating every module as another batch of exercises
+      because: Each one declares a deliverable and its criteria, and the student confirms them one by one — exercises check fundamentals, acceptance criteria check that the thing got built.
 ---
 
 ## O problema

@@ -1,9 +1,14 @@
+// Relative, not the `@/` alias: `next.config.ts` imports this module through
+// Next's own config loader, which does not resolve tsconfig paths.
+import type { Locale } from "./i18n/config";
+
 /**
  * Single source of truth for identity, links and navigation.
- * TODO_EDU markers are resolved in Fase 11 (public e-mail, domain).
+ *
+ * Copy lives in `lib/i18n/dictionaries` — this file holds only what is *about
+ * Edu* rather than about the page: names, URLs, availability. TODO_EDU markers
+ * are resolved in Fase 11 (public e-mail, domain).
  */
-
-export type Locale = "pt" | "en";
 
 export interface NavItem {
   id: string;
@@ -29,14 +34,20 @@ export const siteConfig = {
     pt: "Desenvolvedor Fullstack — Java & React/TypeScript",
     en: "Fullstack Developer — Java & React/TypeScript",
   } satisfies Record<Locale, string>,
-  headline: {
-    pt: "Stack completa.",
-    en: "Full stack, fully.",
-  } satisfies Record<Locale, string>,
-  description: {
-    pt: "Backend em Java/Spring, frontend em React e TypeScript. Atualmente afiando arquitetura, testes e performance.",
-    en: "Java/Spring on the back end, React and TypeScript on the front. Currently sharpening architecture, testing and performance.",
-  } satisfies Record<Locale, string>,
+
+  /**
+   * Drives the hero availability pill and the About "status" row. Flip to
+   * false the day you stop taking work — it is the first thing a recruiter
+   * looks for, so a stale `true` is worse than no badge at all.
+   */
+  availability: { open: true as boolean },
+
+  /**
+   * Portrait for the About section, duotoned to the active theme at render
+   * time (see `.portrait-*` in globals.css) so it never fights the palette.
+   */
+  portrait: "/minha-foto.png" as string | null,
+
   links: {
     github: "https://github.com/iHadesj",
     linkedin: "https://www.linkedin.com/in/eduardoalexandre-java/",

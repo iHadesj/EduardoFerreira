@@ -16,6 +16,24 @@ de qualquer tarefa.
 - Cada chamada de shell reseta o cwd — sempre `cd` para a raiz do projeto antes
   de rodar pnpm.
 
+## Rotas e i18n
+
+- Duas locales: **PT** (padrão, URLs limpas: `/`, `/projetos/[slug]`) e **EN**
+  (`/en`, `/en/projetos/[slug]`).
+- Cada locale tem seu **próprio root layout** via route group:
+  `src/app/(pt)/` e `src/app/(en)/en/`. Isso é deliberado — um segmento
+  `[locale]` parametrizado impede o Next de renderizar `not-found.tsx` dentro do
+  layout, e faria `<html lang>` depender de patch pós-hidratação.
+- Arquivos de rota são finos de propósito: fixam a locale e delegam para
+  `src/components/pages/*`. Toda cópia vive em `src/lib/i18n/dictionaries/`.
+- `en.ts` usa `satisfies Dictionary` — adicionar chave em `pt.ts` quebra o build
+  até traduzir. Dicionários são **dados puros** (sem função, sem JSX):
+  interpole com `{placeholder}` + `fill()`.
+- Nunca emita `/pt` em markup; construa href com `localePath`/`projectPath`.
+- Client components pegam locale via `useI18n()`; server components recebem
+  `dict` por prop. O slice do cliente (`getClientDictionary`) é o que atravessa
+  a fronteira RSC — não importe o dicionário completo sob `"use client"`.
+
 ## Regras inegociáveis
 
 - Siga as fases do PLANO.md em ordem; não avance com critérios de aceite pendentes.

@@ -1,8 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import { Mail } from "lucide-react";
 import { navItems, siteConfig } from "@/lib/site-config";
 import { GitHubIcon, LinkedInIcon } from "@/components/icons";
 import { Magnetic } from "@/components/ui/magnetic";
+import { useI18n } from "@/lib/i18n/locale-provider";
+import { fill } from "@/lib/i18n/format";
+import { sectionPath } from "@/lib/i18n/routes";
 
 const socials = [
   {
@@ -27,6 +32,7 @@ const socials = [
 ];
 
 export function Footer() {
+  const { locale, dict } = useI18n();
   const year = new Date().getFullYear();
 
   return (
@@ -35,21 +41,22 @@ export function Footer() {
         <div className="flex flex-col gap-3">
           <span className="font-display text-bone text-2xl">EF</span>
           <p className="prose-measure text-smoke text-sm">
-            Dev fullstack: Java no back, React e TypeScript no front. Aprendendo
-            um pouco mais todo dia.
+            {dict.footer.blurb}
           </p>
         </div>
 
-        <nav aria-label="Rodapé" className="flex flex-col gap-2">
+        <nav aria-label={dict.nav.footer} className="flex flex-col gap-2">
           {navItems.map((item) => (
-            <a
+            <Link
               key={item.id}
-              href={item.href}
+              // Absolute, not a bare `#hash`: the footer also renders on case
+              // study pages, where these sections do not exist.
+              href={sectionPath(locale, item.href)}
               data-cursor="hover"
               className="text-smoke hover:text-molten w-fit text-sm transition-colors"
             >
-              {item.label.pt}
-            </a>
+              {item.label[locale]}
+            </Link>
           ))}
         </nav>
 
@@ -72,9 +79,7 @@ export function Footer() {
       </div>
 
       <div className="container-hades border-ash text-smoke flex flex-col gap-2 border-t py-6 font-mono text-xs sm:flex-row sm:items-center sm:justify-between">
-        <p>
-          © {year} Edu Ferreira — feito com Next.js, persistência e muito café 🙏.
-        </p>
+        <p suppressHydrationWarning>{fill(dict.footer.copyright, { year })}</p>
         <Link
           href={siteConfig.sourceUrl}
           target="_blank"
@@ -82,7 +87,7 @@ export function Footer() {
           data-cursor="hover"
           className="hover:text-molten w-fit transition-colors"
         >
-          ver código-fonte ↗
+          {dict.footer.viewSource}
         </Link>
       </div>
     </footer>

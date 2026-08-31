@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 import { siteConfig } from "./src/lib/site-config";
 
+/**
+ * No locale rewrites here on purpose: both locales are real routes (see
+ * `src/app/(pt)` and `src/app/(en)`), so `/`, `/projetos/:slug` and `/en/*` all
+ * resolve directly.
+ */
 const nextConfig: NextConfig = {
   async headers() {
     return [

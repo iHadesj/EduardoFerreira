@@ -6,12 +6,15 @@ import { RepoCard } from "./repo-card";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { RECENT_WINDOW_MONTHS, type ReposPage } from "@/lib/github";
+import { useI18n } from "@/lib/i18n/locale-provider";
+import { fill } from "@/lib/i18n/format";
 
 const ARCHIVE_GRID_ID = "github-feed-archive";
 
 async function fetchReposPage(page: number): Promise<ReposPage> {
   const res = await fetch(`/api/github/repos?page=${page}&per_page=9`);
-  if (!res.ok) throw new Error("GitHub indisponível");
+  // Developer-facing only — the UI renders `githubFeed.error` instead.
+  if (!res.ok) throw new Error(`GitHub upstream responded ${res.status}`);
   return res.json() as Promise<ReposPage>;
 }
 
@@ -23,10 +26,13 @@ async function fetchReposPage(page: number): Promise<ReposPage> {
 export function GithubFeed({
   initialData,
   cutoff,
+  intl,
 }: {
   initialData: ReposPage;
   cutoff: string;
+  intl: "pt-BR" | "en-US";
 }) {
+  const { dict } = useI18n();
   const {
     data,
     fetchNextPage,
@@ -87,14 +93,14 @@ export function GithubFeed({
   if (status === "error" && repos.length === 0) {
     return (
       <div className="flex flex-col items-center gap-4 rounded-lg border border-ash bg-basalt p-10 text-center">
-        <p className="text-smoke">O oráculo do GitHub não respondeu.</p>
+        <p className="text-smoke">{dict.githubFeed.error}</p>
         <button
           type="button"
           onClick={() => void refetch()}
           data-cursor="hover"
           className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
         >
-          Tentar de novo
+          {dict.githubFeed.retry}
         </button>
       </div>
     );
@@ -105,13 +111,15 @@ export function GithubFeed({
   const isArchiveToggle = !autoLoad && !showArchive;
   const action = isArchiveToggle
     ? {
-        label: "Ver repositórios anteriores",
+        label: dict.githubFeed.showArchive,
         onClick: () => setShowArchive(true),
         visible: older.length > 0 || hasNextPage,
         disabled: false,
       }
     : {
-        label: isFetchingNextPage ? "Carregando…" : "Carregar mais",
+        label: isFetchingNextPage
+          ? dict.githubFeed.loading
+          : dict.githubFeed.loadMore,
         onClick: () => void fetchNextPage(),
         visible: hasNextPage,
         disabled: isFetchingNextPage,
@@ -122,12 +130,14 @@ export function GithubFeed({
       {recent.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {recent.map((repo) => (
-            <RepoCard key={repo.url} repo={repo} />
+            <RepoCard key={repo.url} repo={repo} intl={intl} />
           ))}
         </div>
       ) : (
         <p className="text-smoke text-center font-mono text-xs">
-          {`nenhum repositório com push nos últimos ${RECENT_WINDOW_MONTHS} meses.`}
+          {fill(dict.githubFeed.emptyWindow, {
+            months: RECENT_WINDOW_MONTHS,
+          })}
         </p>
       )}
 
@@ -138,12 +148,12 @@ export function GithubFeed({
       <div id={ARCHIVE_GRID_ID} hidden={!showArchive}>
         {older.length > 0 ? (
           <p className="text-smoke mb-6 font-mono text-xs tracking-widest uppercase">
-            {"// arquivo"}
+            {dict.githubFeed.archiveLabel}
           </p>
         ) : null}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {older.map((repo) => (
-            <RepoCard key={repo.url} repo={repo} />
+            <RepoCard key={repo.url} repo={repo} intl={intl} />
           ))}
         </div>
       </div>
@@ -164,9 +174,7 @@ export function GithubFeed({
         </div>
       ) : (
         <p className="text-smoke text-center font-mono text-xs">
-          {isError
-            ? "não consegui carregar mais agora."
-            : "fim do arquivo — por enquanto."}
+          {isError ? dict.githubFeed.loadError : dict.githubFeed.endOfArchive}
         </p>
       )}
     </div>

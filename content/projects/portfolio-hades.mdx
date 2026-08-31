@@ -22,6 +22,59 @@ metrics:
     value: Next.js 16
   - label: Lighthouse
     value: a medir
+decisions:
+  - choice: O 3D nunca é o LCP
+    instead: Renderizar a cena WebGL junto com o hero
+    because: O hero entrega texto e um pôster SVG da fita de Möbius no servidor; a cena carrega pós-idle e faz crossfade por cima. Em mobile, reduced-motion ou GPU fraca o pôster fica e nenhum byte de three.js é baixado.
+    cost: Existem dois hero para manter em sincronia — o pôster estático e a escultura procedural.
+  - choice: Orçamento de bundle como gate, não meta
+    instead: Medir o peso só depois de o efeito estar pronto
+    because: O chunk 3D fechou em 230 KB gz contra um limite de 300, porque o número tinha poder de veto.
+    cost: Trocar o bloom de pós-processamento por um glow em CSS — o ganho visual não pagava os ~85 KB.
+  - choice: Toda a paleta vinda do @theme do Tailwind v4
+    instead: Cores próprias na escultura e nos componentes
+    because: A escultura procedural reaproveita os mesmos tons frios, âmbar e obsidiana, então trocar de tema continua concentrado nas custom properties.
+  - choice: MDX tipado por zod (velite) para os case studies
+    instead: Frontmatter lido sem validação
+    because: Frontmatter inválido quebra o build com erro legível em vez de renderizar uma página pela metade.
+  - choice: Acessibilidade e prefers-reduced-motion desde o início
+    instead: Um checklist de acessibilidade numa fase final
+    because: Cada efeito nasce com o caminho sem movimento junto, em vez de ganhar um remendo depois.
+    cost: Os testes de acessibilidade ainda ficaram numa fase dedicada em vez de acompanharem cada feature.
+en:
+  title: Personal Portfolio
+  summary: This site — Next.js 16, interactive 3D and measured performance, built from an executable spec.
+  problem: Prove front-end experience in a single artefact — as fast as plain text, as memorable as a game.
+  highlights:
+    - 3D chunk isolated at 230 KB gz (budget < 300 KB)
+    - three.js kept out of the initial payload (lazy + capability gates)
+    - Built phase by phase from an executable spec
+  metrics:
+    - label: 3D chunk
+      value: 230 KB gz
+    - label: Framework
+      value: Next.js 16
+    - label: Lighthouse
+      value: to be measured
+  decisions:
+    - choice: The 3D is never the LCP
+      instead: Rendering the WebGL scene together with the hero
+      because: The hero ships text and an SVG poster of the Möbius strip from the server; the scene loads post-idle and crossfades over it. On mobile, reduced motion or a weak GPU the poster stays and not one byte of three.js is downloaded.
+      cost: There are two heroes to keep in sync — the static poster and the procedural sculpture.
+    - choice: The bundle budget is a gate, not a target
+      instead: Weighing the effect only once it is finished
+      because: The 3D chunk landed at 230 KB gz against a 300 KB limit, because the number had veto power.
+      cost: Trading post-processing bloom for a CSS glow — the visual gain did not pay for ~85 KB.
+    - choice: The whole palette comes from Tailwind v4's @theme
+      instead: Bespoke colours in the sculpture and the components
+      because: The procedural sculpture reuses the same cold, amber and obsidian tones, so switching themes stays confined to the custom properties.
+    - choice: Case studies as MDX typed by zod (velite)
+      instead: Frontmatter read without validation
+      because: Invalid frontmatter breaks the build with a readable error instead of rendering half a page.
+    - choice: Accessibility and prefers-reduced-motion from the start
+      instead: An accessibility checklist in a final phase
+      because: Every effect is born with its no-motion path alongside it, rather than being patched afterwards.
+      cost: The accessibility tests still ended up in a dedicated phase instead of travelling with each feature.
 ---
 
 ## O problema

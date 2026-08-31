@@ -1,27 +1,25 @@
 import { ScrollSection } from "@/components/layout/scroll-flow";
 import { TechStackMotionGrid } from "@/components/sections/tech-stack-motion";
 import { SectionHeading } from "@/components/ui/section-heading";
+import { siteConfig } from "@/lib/site-config";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 
-const STACK_GROUPS = [
+/**
+ * The visual identity of each card — number, glyph, accent token and the tool
+ * list. All of it is locale-independent (product names, not prose), so it stays
+ * here and is zipped with the translated copy from the dictionary by position.
+ */
+const STACK_VISUALS = [
   {
     index: "01",
     code: "</>",
     accent: "molten",
-    label: "stack principal",
-    title: "Frontend & produto",
-    description:
-      "Interfaces tipadas, responsivas e pensadas como produto — da arquitetura ao último estado de interação.",
     tools: ["TypeScript", "React", "Next.js", "Vite", "Tailwind CSS"],
-    projects: "Levva · RotaDev · Portfólio",
   },
   {
     index: "02",
     code: "API",
     accent: "styx",
-    label: "servidor & realtime",
-    title: "Backend & APIs",
-    description:
-      "APIs REST, autenticação, validação de contratos e experiências multiplayer orientadas a eventos.",
     tools: [
       "Java",
       "Spring",
@@ -31,16 +29,11 @@ const STACK_GROUPS = [
       "Firebase",
       "Zod",
     ],
-    projects: "StudyQuest · API Java",
   },
   {
     index: "03",
     code: "DB",
     accent: "hybrid",
-    label: "estado & persistência",
-    title: "Dados",
-    description:
-      "Estado previsível no cliente e persistência escolhida de acordo com o domínio do produto.",
     tools: [
       "Zustand",
       "TanStack Query",
@@ -48,16 +41,11 @@ const STACK_GROUPS = [
       "PostgreSQL",
       "JPA / Hibernate",
     ],
-    projects: "Levva · StudyQuest · API Java",
   },
   {
     index: "04",
     code: "3D",
     accent: "ember",
-    label: "interface avançada",
-    title: "Motion & experiência",
-    description:
-      "Movimento, áudio e 3D usados para explicar ações e criar experiências que ficam na memória.",
     tools: [
       "Motion",
       "Three.js",
@@ -65,48 +53,54 @@ const STACK_GROUPS = [
       "Material UI",
       "Web Audio API",
     ],
-    projects: "Portfólio · RotaDev · Change",
   },
   {
     index: "05",
     code: "QA",
     accent: "bone",
-    label: "confiança & entrega",
-    title: "Qualidade",
-    description:
-      "Testes e ferramentas de entrega aplicados onde uma regressão realmente custa confiança.",
     tools: ["Vitest", "JUnit", "ESLint", "PWA", "Vercel", "Git"],
-    projects: "Levva · Java · projetos web",
   },
 ] as const;
 
-export function TechStack() {
+export function TechStack({ dict }: { dict: Dictionary }) {
+  // Positional pairing. `flatMap` rather than `map` so a copy entry without a
+  // matching visual is dropped instead of rendering a half-built card — under
+  // `noUncheckedIndexedAccess` that possibility has to be handled explicitly.
+  const groups = dict.stack.groups.flatMap((copy, index) => {
+    const visual = STACK_VISUALS[index];
+    return visual ? [{ ...visual, ...copy }] : [];
+  });
+
   return (
     <ScrollSection id="stack" className="tech-stack section-pad scroll-mt-24">
       <div className="container-hades">
         <div className="tech-stack__intro">
           <SectionHeading
-            eyebrow="stack em prática"
-            title="Ferramentas que viraram produto."
-            description="Organizadas pelo problema que resolvem — e conectadas aos projetos em que foram usadas."
+            eyebrow={dict.stack.eyebrow}
+            title={dict.stack.title}
+            description={dict.stack.description}
           />
 
           <a
             className="tech-stack__github-proof"
-            href="https://github.com/iHadesj?tab=repositories"
+            href={`${siteConfig.links.github}?tab=repositories`}
             target="_blank"
             rel="noreferrer"
-            aria-label="Ver os repositórios de Edu Ferreira no GitHub"
+            aria-label={dict.stack.proofAria}
           >
             <span className="tech-stack__proof-dot" aria-hidden />
             <span>
-              <strong>Stack validada no código</strong>
-              <small>ver repositórios no GitHub ↗</small>
+              <strong>{dict.stack.proofTitle}</strong>
+              <small>{dict.stack.proofLink}</small>
             </span>
           </a>
         </div>
 
-        <TechStackMotionGrid groups={STACK_GROUPS} />
+        <TechStackMotionGrid
+          groups={groups}
+          toolsAria={dict.stack.toolsAria}
+          whereUsed={dict.stack.whereUsed}
+        />
       </div>
     </ScrollSection>
   );

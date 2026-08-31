@@ -1,8 +1,19 @@
+"use client";
+
 import { Star } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils";
 import type { RepoDTO } from "@/lib/github";
+import { useI18n } from "@/lib/i18n/locale-provider";
 
-export function RepoCard({ repo }: { repo: RepoDTO }) {
+export function RepoCard({
+  repo,
+  intl,
+}: {
+  repo: RepoDTO;
+  intl: "pt-BR" | "en-US";
+}) {
+  const { dict } = useI18n();
+
   return (
     <a
       href={repo.url}
@@ -24,7 +35,7 @@ export function RepoCard({ repo }: { repo: RepoDTO }) {
       </div>
 
       <p className="text-smoke line-clamp-2 min-h-[2.5em] text-sm">
-        {repo.description ?? "Sem descrição."}
+        {repo.description ?? dict.githubFeed.noDescription}
       </p>
 
       <div className="text-smoke mt-auto flex items-center justify-between gap-3 text-xs">
@@ -47,7 +58,7 @@ export function RepoCard({ repo }: { repo: RepoDTO }) {
             suppressHydrationWarning is for; the client value wins and stays
             accurate. `dateTime` keeps the machine-readable instant. */}
         <time dateTime={repo.pushedAt} suppressHydrationWarning>
-          {formatRelativeTime(repo.pushedAt)}
+          {formatRelativeTime(repo.pushedAt, intl)}
         </time>
       </div>
     </a>

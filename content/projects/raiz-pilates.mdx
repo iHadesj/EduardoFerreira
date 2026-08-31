@@ -22,6 +22,49 @@ metrics:
     value: Vercel
   - label: Conversão
     value: WhatsApp
+decisions:
+  - choice: Front estático puro — HTML, CSS e JavaScript
+    instead: Um framework com build pipeline
+    because: Uma landing de página única não justifica pipeline, o custo de manutenção cai para "editar um arquivo" e o tempo de carregamento fica imbatível.
+  - choice: WhatsApp como único funil de conversão
+    instead: Formulário com backend, validação e e-mail transacional
+    because: O CTA leva direto para a conversa, que é onde o público desse nicho já agenda — menos código e menos atrito.
+  - choice: Aula experimental gratuita como oferta central
+    instead: Vários pedidos concorrendo na mesma página
+    because: A página inteira converge para um único pedido, repetido no hero, no meio e no fim.
+  - choice: Deploy estático na Vercel
+    instead: Um servidor para manter
+    because: Custo de infraestrutura zero e a página sempre no ar.
+    cost: Sem servidor não há medição de origem — os eventos de clique nos CTAs ainda precisam ser instrumentados.
+en:
+  title: Raiz Pilates
+  summary: A conversion landing page for a pilates studio — free trial class and booking through WhatsApp.
+  problem: Turn a visitor into a student with a page that is light, clear and has exactly one path to conversion.
+  highlights:
+    - Six sections with a single goal — get to WhatsApp
+    - A free trial class as the way in, with the CTA repeated throughout
+    - Pure static front end — instant load, zero infrastructure cost
+  metrics:
+    - label: Stack
+      value: Static front
+    - label: Deploy
+      value: Vercel
+    - label: Conversion
+      value: WhatsApp
+  decisions:
+    - choice: Pure static front end — HTML, CSS and JavaScript
+      instead: A framework with a build pipeline
+      because: A single-page landing does not justify a pipeline, maintenance drops to "edit one file" and load time is unbeatable.
+    - choice: WhatsApp as the only conversion funnel
+      instead: A form with a backend, validation and transactional e-mail
+      because: The CTA goes straight to the conversation, which is where this audience already books — less code and less friction.
+    - choice: A free trial class as the central offer
+      instead: Several competing asks on the same page
+      because: The whole page converges on one request, repeated in the hero, the middle and the end.
+    - choice: Static deploy on Vercel
+      instead: A server to maintain
+      because: Zero infrastructure cost and the page is always up.
+      cost: With no server there is no first-party measurement — CTA click events still need instrumenting.
 ---
 
 ## O problema

@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useSpring, type Variants } from "motion/react";
 import { useReducedMotionSafe } from "@/hooks/use-reduced-motion-safe";
 import { easeOutExpo } from "@/lib/motion-presets";
+import { fill } from "@/lib/i18n/format";
 
 interface StackGroup {
   index: string;
@@ -18,13 +19,16 @@ interface StackGroup {
 
 interface TechStackMotionGridProps {
   groups: readonly StackGroup[];
+  /** `stack.toolsAria` — carries a `{title}` placeholder. */
+  toolsAria: string;
+  whereUsed: string;
 }
 
 const cardVariants: Variants = {
   hidden: {
-    opacity: 0,
-    y: 44,
-    scale: 0.965,
+    opacity: 1,
+    y: 36,
+    scale: 0.975,
   },
   visible: (index: number) => ({
     opacity: 1,
@@ -65,8 +69,15 @@ const scanVariants: Variants = {
   }),
 };
 
-export function TechStackMotionGrid({ groups }: TechStackMotionGridProps) {
+export function TechStackMotionGrid({
+  groups,
+  toolsAria,
+  whereUsed,
+}: TechStackMotionGridProps) {
   const gridRef = useRef<HTMLDivElement>(null);
+  const [visibleCards, setVisibleCards] = useState<ReadonlySet<number>>(
+    () => new Set(),
+  );
   const reduced = useReducedMotionSafe();
   const { scrollYProgress } = useScroll({
     target: gridRef,
@@ -79,29 +90,85 @@ export function TechStackMotionGrid({ groups }: TechStackMotionGridProps) {
     restDelta: 0.001,
   });
 
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (!grid || reduced) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entered: number[] = [];
+
+        for (const entry of entries) {
+          if (!entry.isIntersecting || !(entry.target instanceof HTMLElement)) {
+            continue;
+          }
+
+          entered.push(Number(entry.target.dataset.stackIndex));
+          observer.unobserve(entry.target);
+        }
+
+        if (entered.length === 0) return;
+
+        setVisibleCards((current) => {
+          const next = new Set(current);
+          for (const index of entered) next.add(index);
+          return next;
+        });
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -5%" },
+    );
+
+    const cards = grid.querySelectorAll<HTMLElement>(".tech-stack-card");
+    cards.forEach((card) => observer.observe(card));
+
+    return () => observer.disconnect();
+  }, [reduced]);
+
   return (
     <div ref={gridRef} className="tech-stack__grid">
-      <span className="tech-stack__scroll-track" aria-hidden>
-        <motion.span
-          className="tech-stack__scroll-progress"
-          style={{ scaleY: reduced ? 1 : progress }}
+      <svg
+        className="tech-stack__scroll-track"
+        viewBox="0 0 24 1000"
+        preserveAspectRatio="none"
+        aria-hidden
+      >
+        <path
+          className="tech-stack__scroll-path tech-stack__scroll-path--base"
+          d="M17 0 C2 135 22 285 8 438 S22 748 7 1000"
+          vectorEffect="non-scaling-stroke"
         />
-      </span>
+        <motion.path
+          className="tech-stack__scroll-path tech-stack__scroll-path--active"
+          d="M17 0 C2 135 22 285 8 438 S22 748 7 1000"
+          vectorEffect="non-scaling-stroke"
+          style={{ pathLength: reduced ? 1 : progress }}
+        />
+      </svg>
 
       {groups.map((group, index) => (
         <motion.article
           key={group.index}
           className={`tech-stack-card tech-stack-card--${group.accent}`}
+          data-stack-index={index}
           custom={index}
-          variants={reduced ? undefined : cardVariants}
+          variants={cardVariants}
           initial={reduced ? false : "hidden"}
-          whileInView={reduced ? undefined : "visible"}
-          viewport={{ once: true, amount: 0.16, margin: "0px 0px -7%" }}
+          animate={reduced || visibleCards.has(index) ? "visible" : "hidden"}
+          whileHover={
+            reduced
+              ? undefined
+              : {
+                  y: -5,
+                  scale: 1.008,
+                  transition: { duration: 0.25, ease: easeOutExpo },
+                }
+          }
+          whileTap={reduced ? undefined : { scale: 0.985 }}
         >
           <motion.span
             className="tech-stack-card__scan"
             custom={index}
-            variants={reduced ? undefined : scanVariants}
+            variants={scanVariants}
             aria-hidden
           />
 
@@ -109,7 +176,7 @@ export function TechStackMotionGrid({ groups }: TechStackMotionGridProps) {
             <motion.span
               className="tech-stack-card__code"
               custom={index}
-              variants={reduced ? undefined : codeVariants}
+              variants={codeVariants}
               aria-hidden
             >
               {group.code}
@@ -127,7 +194,7 @@ export function TechStackMotionGrid({ groups }: TechStackMotionGridProps) {
 
           <ul
             className="tech-stack-card__tools"
-            aria-label={`Tecnologias de ${group.title}`}
+            aria-label={fill(toolsAria, { title: group.title })}
           >
             {group.tools.map((tool) => (
               <li key={tool}>{tool}</li>
@@ -135,7 +202,7 @@ export function TechStackMotionGrid({ groups }: TechStackMotionGridProps) {
           </ul>
 
           <p className="tech-stack-card__projects">
-            <span>onde aparece</span>
+            <span>{whereUsed}</span>
             {group.projects}
           </p>
         </motion.article>

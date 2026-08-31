@@ -1,8 +1,31 @@
 import { defineConfig, defineCollection, s } from "velite";
 
 /**
+ * One entry of the decision log — the structured half of a case study.
+ *
+ * Prose already explains *what* was built; these four fields force the part
+ * that actually separates portfolios: the alternative that was dropped and the
+ * price the choice carried. `instead` and `cost` are optional because a few
+ * decisions genuinely have no rival or no downside — but leaving them empty is
+ * a visible gap in the rendered log, which is the point.
+ */
+const decision = s.object({
+  choice: s.string(),
+  instead: s.string().optional(),
+  because: s.string(),
+  cost: s.string().optional(),
+});
+
+const metric = s.object({ label: s.string(), value: s.string() });
+
+/**
  * Case studies. Frontmatter is validated by this schema at build time — an
  * invalid file fails the build with a readable error (§F5 acceptance).
+ *
+ * `en` carries the scannable half of the study (title, summary, highlights,
+ * metrics, decision log) so the English page is complete above the fold. The
+ * long-form MDX body stays Portuguese; `projectPage.translationNotice` says so
+ * on the page. Merging happens in `lib/projects.ts`, never in components.
  */
 const projects = defineCollection({
   name: "Project",
@@ -22,10 +45,20 @@ const projects = defineCollection({
       featured: s.boolean().default(false),
       order: s.number().default(99),
       highlights: s.array(s.string()).max(4).default([]),
-      metrics: s
-        .array(s.object({ label: s.string(), value: s.string() }))
-        .default([]),
+      metrics: s.array(metric).default([]),
+      decisions: s.array(decision).max(6).default([]),
       status: s.enum(["shipped", "in-progress", "archived"]),
+      en: s
+        .object({
+          title: s.string(),
+          summary: s.string().max(200),
+          problem: s.string(),
+          coverAlt: s.string().optional(),
+          highlights: s.array(s.string()).max(4).default([]),
+          metrics: s.array(metric).default([]),
+          decisions: s.array(decision).max(6).default([]),
+        })
+        .optional(),
       content: s.mdx(),
     })
     .transform((data) => ({ ...data, url: `/projetos/${data.slug}` })),
