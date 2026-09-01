@@ -79,7 +79,7 @@ export const pt = {
       ],
     ] as readonly Rich[],
     facts: [
-      { key: "onde", value: "SP-ZS" },
+      { key: "onde", value: "São Paulo - Zona Sul" },
       { key: "no dia a dia", value: "Java · Spring · React · TS" },
       { key: "aprendendo", value: "JUnit · Machine Learning · Zustand" },
     ],
