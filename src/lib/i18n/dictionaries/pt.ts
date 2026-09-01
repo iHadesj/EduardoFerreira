@@ -57,9 +57,9 @@ export const pt = {
     ctaProjects: "Ver projetos",
     ctaCv: "Baixar CV",
     ctaCvAria: "Baixar currículo em PDF",
-    availabilityOpen: "",
-    availabilityClosed: "",
-    availabilityAria: "",
+    availabilityOpen: "Aberto a oportunidades",
+    availabilityClosed: "Sem disponibilidade no momento",
+    availabilityAria: "Disponibilidade profissional",
     scrollCue: "scroll",
   },
 

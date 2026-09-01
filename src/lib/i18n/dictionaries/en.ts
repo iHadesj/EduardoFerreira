@@ -43,9 +43,9 @@ export const en = {
     ctaProjects: "See projects",
     ctaCv: "Download CV",
     ctaCvAria: "Download résumé as PDF",
-    availabilityOpen: "open to opportunities",
-    availabilityClosed: "not taking work right now",
-    availabilityAria: "Availability status",
+    availabilityOpen: "Open to opportunities",
+    availabilityClosed: "Not available right now",
+    availabilityAria: "Professional availability",
     scrollCue: "scroll",
   },
 
